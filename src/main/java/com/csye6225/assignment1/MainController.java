@@ -25,7 +25,7 @@ public class MainController {
     public static final Pattern VALID_PWD_REGEX =
             Pattern.compile("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$l", Pattern.CASE_INSENSITIVE);
 
-    @PostMapping(path="/add")
+    @PostMapping(path="/user/register")
    // @RequestMapping(path="/add" ,method=RequestMethod.POST)
     public @ResponseBody String addNewUser (@RequestParam String pwd
             , @RequestParam String email) {
