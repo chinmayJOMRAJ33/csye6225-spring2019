@@ -38,6 +38,7 @@ public class MainController {
         //     return "invalid pwd";
         // }
         //#TBD Validate if email already exists
+        //first push heta
 
         String encryptedPwd=BCrypt.hashpw(pwd,BCrypt.gensalt(12));
         User n = new User();
