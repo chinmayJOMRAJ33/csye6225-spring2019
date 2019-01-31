@@ -10,7 +10,7 @@ public class MainControllerTest {
     @Test
     public void validateEmail() {
         String email;
-        email = "abcd@gmail.com";
+        email = "abcdgmail.com";
         //  boolean validEmail = mainController.validateEmail(email);
 
         assertTrue("Correct Email Format",mainController.validateEmail(email));
@@ -20,11 +20,14 @@ public class MainControllerTest {
     @Test
     public void validatePwd() {
         String password;
-        password = "aBCD1@gh";
+        password = "Abc@1234";
 
         System.out.println(mainController.validatePwd(password));
 
         //  boolean validEmail = mainController.validateEmail(email);
-        assertFalse("Correct Password",mainController.validatePwd(password));
+        assertEquals("Password shoud be 8 characters or above",true,mainController.validatePwd(password));
+
     }
-    }
+
+
+}

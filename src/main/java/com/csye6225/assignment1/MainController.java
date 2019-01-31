@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 //import at.favre.lib.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.*;
 import org.apache.tomcat.util.codec.binary.Base64;
+
+import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -21,32 +23,34 @@ public class MainController {
     private UserRepository userRepository;
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX =
             Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
-    // public static final Pattern VALID_PWD_REGEX =
-    //        Pattern.compile("^(?=\\P{Ll}*\\p{Ll})(?=\\P{Lu}*\\p{Lu})(?=\\P{N}*\\p{N})(?=[\\p{L}\\p{N}]*[^\\p{L}\\p{N}])[\\s\\S]{8,}$", Pattern.CASE_INSENSITIVE);
+
 
     public static final Pattern VALID_PWD_REGEX =
-            Pattern.compile("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$l", Pattern.CASE_INSENSITIVE);
+          //  Pattern.compile("^(?=.*?[A-Z]assertFalse("Correct Password",mainController.validatePwd(password));)(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$l", Pattern.CASE_INSENSITIVE);
+    Pattern.compile("^(?=.*\\d)(?=.*[a-z])(?=.*[@#$%])(?=.*[A-Z]).{8,30}$");
 
     @PostMapping(path = "/user/register")
     // @RequestMapping(path="/add" ,method=RequestMethod.POST)
     public @ResponseBody
-    JEntity addNewUser(@RequestParam String pwd
-            , @RequestParam String email) {
+    JEntity addNewUser(@RequestParam String email
+            , @RequestParam String pwd) {
         // @ResponseBody means the returned String is the response, not a view name
         // @RequestParam means it is a parameter from the GET or POST request
 
         JEntity jEntity = new JEntity();
 
         if (validateEmail(email) == false) {
-            jEntity.setMsg("Email is invalid");
+            jEntity.setMsg("Please enter a valid email id");
+            return jEntity;
         }
 
-        /*if (validateEmail(email)==false){
-            return "invalid email";
-        }*/
-        // if (validatePwd(pwd)==false){
-        //     return "invalid pwd";
-        // }
+        //if (validateEmail(email)==false){
+        //    return "invalid email";
+        //}/
+         if (validatePwd(pwd)==false){
+             jEntity.setMsg("Password should be 8 characters or above");
+             return jEntity;
+        }
         //#TBD Validate if email already exists
         //first push heta
 
@@ -54,34 +58,29 @@ public class MainController {
         if (user == null) {
             //  userRepository.save(n);
             user = new User();
-            String encryptedPwd = BCrypt.hashpw(pwd, BCrypt.gensalt());
+           // String encryptedPwd = BCrypt.hashpw(pwd, BCrypt.gensalt());
+            String encryptedPwd = BCrypt.hashpw(pwd, BCrypt.gensalt(12));
 
             user.setpwd(encryptedPwd);
             //n.setpwd(pwd);
             user.setEmail(email);
             userRepository.save(user);
             jEntity.setMsg("User account created successfully!");
+            return jEntity;
 
         } else {
             jEntity.setMsg("User account already exist!");
+            return jEntity;
 
         }
 
-        /* String encryptedPwd=BCrypt.hashpw(pwd,BCrypt.gensalt());
-        User n = new User();
-        n.setpwd(encryptedPwd);
-        //n.setpwd(pwd);
-        n.setEmail(email);
-        userRepository.save(n); */
 
-
-        return jEntity;
 
     }
 
     @GetMapping(path = "/")
     public @ResponseBody
-    JEntity getCurrentTime(@RequestHeader String Authorization) {
+    JEntity getCurrentTime(HttpServletRequest httpServletRequest) {
         // This returns a JSON or XML with the users
 //        if(email==null || email.equals("")){
 //            return "Email is invalid";
@@ -95,16 +94,29 @@ public class MainController {
         //#TBD validate email and pwd from database
 
         JEntity j = new JEntity();
+        String auth=httpServletRequest.getHeader("Authorization");
 
-
-        if (Authorization != null) {
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
             // Authorization: Basic base64credentials
             //Authorization.toLowerCase().startsWith("basic")
+//           if(auth.length()<5){
+//               j.setMsg("no basic");
+//               return j;
+//           }
+        String base64Credentials = auth.substring("Basic".length()).trim();
+//          if(auth.substring("Basic".length()).trim().length()<1) {
+//               j.setMsg(base64Credentials);
+//              return j;
+//           }
 
-            String base64Credentials = Authorization.substring("Basic".length()).trim();
-            if (Authorization.toLowerCase().startsWith("basic") && Base64.isBase64(base64Credentials)) {
+
+
+
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+               // String base64Credentials = auth.substring("Basic".length()).trim();
                 byte[] credDecoded = Base64.decodeBase64(base64Credentials);
                 String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+
                 // credentials = username:password
                 String[] values = credentials.split(":", 2);
 
@@ -115,24 +127,24 @@ public class MainController {
 
 
                 if (u == null) {
-                    j.setMsg("Email does not exist");
+                    j.setMsg("Please enter a valid email!");
                     return j;
                 } else {
 
                     if (!BCrypt.checkpw(pwd, u.getpwd())) {
-                        j.setMsg("Invalid Credential");
+                        j.setMsg("Please enter valid password!");
                         return j;
                     }
                     Date date=new Date();
                     String strDateFormat= "hh:mm:ss a";
                     DateFormat dateFormat=new SimpleDateFormat(strDateFormat);
                     String formattedDate=dateFormat.format(date);
-                    j.setMsg(formattedDate);
+                    j.setMsg("User is logged in! "+formattedDate);
                     return j;
                 }
             }
             else{
-                j.setMsg("Basic Authentication not enabled");
+                j.setMsg("User is not authorized!");
                 return j;
             }
 
@@ -143,7 +155,7 @@ public class MainController {
 //        String strDateFormat= "hh:mm:ss a";
 //        DateFormat dateFormat=new SimpleDateFormat(strDateFormat);
 //        String formattedDate=dateFormat.format(date);
-        j.setMsg("Header not passed");
+        j.setMsg("User is not logged in!");
         return j;
         //#TBD return in json with http code
     }
