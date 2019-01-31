@@ -114,6 +114,14 @@ public class MainController {
                 if (u == null) {
                     j.setMsg("Email does not exist");
                     return j;
+                } else {
+
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        j.setMsg("Invalid Credential");
+                        return j;
+                    }
+
+                    return j;
                 }
             }
             else{
