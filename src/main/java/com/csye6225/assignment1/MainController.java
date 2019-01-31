@@ -27,20 +27,27 @@ public class MainController {
 
     @PostMapping(path="/user/register")
    // @RequestMapping(path="/add" ,method=RequestMethod.POST)
-    public @ResponseBody String addNewUser (@RequestParam String pwd
+    public @ResponseBody JEntity addNewUser (@RequestParam String pwd
             , @RequestParam String email) {
         // @ResponseBody means the returned String is the response, not a view name
         // @RequestParam means it is a parameter from the GET or POST request
+
+        JEntity jEntity = new JEntity();
+
         if (validateEmail(email)==false){
-            return "invalid email";
+            jEntity.setMsg("Email is invalid");
         }
+
+        /*if (validateEmail(email)==false){
+            return "invalid email";
+        }*/
         // if (validatePwd(pwd)==false){
         //     return "invalid pwd";
         // }
         //#TBD Validate if email already exists
         //first push heta
 
-        String encryptedPwd=BCrypt.hashpw(pwd,BCrypt.gensalt(12));
+        String encryptedPwd=BCrypt.hashpw(pwd,BCrypt.gensalt());
         User n = new User();
         n.setpwd(encryptedPwd);
         //n.setpwd(pwd);
@@ -48,8 +55,8 @@ public class MainController {
         userRepository.save(n);
 
 
-        return "Saved";
-        //#TBD return in json with http code
+        return jEntity;
+
     }
 
     @GetMapping(path="/")
