@@ -27,16 +27,17 @@ public class MainController {
     public static final Pattern VALID_PWD_REGEX =
             Pattern.compile("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$l", Pattern.CASE_INSENSITIVE);
 
-    @PostMapping(path="/user/register")
-   // @RequestMapping(path="/add" ,method=RequestMethod.POST)
-    public @ResponseBody JEntity addNewUser (@RequestParam String pwd
+    @PostMapping(path = "/user/register")
+    // @RequestMapping(path="/add" ,method=RequestMethod.POST)
+    public @ResponseBody
+    JEntity addNewUser(@RequestParam String pwd
             , @RequestParam String email) {
         // @ResponseBody means the returned String is the response, not a view name
         // @RequestParam means it is a parameter from the GET or POST request
 
         JEntity jEntity = new JEntity();
 
-        if (validateEmail(email)==false){
+        if (validateEmail(email) == false) {
             jEntity.setMsg("Email is invalid");
         }
 
@@ -50,10 +51,10 @@ public class MainController {
         //first push heta
 
         User user = userRepository.findByEmail(email);
-        if(user == null){
+        if (user == null) {
             //  userRepository.save(n);
             user = new User();
-            String encryptedPwd=BCrypt.hashpw(pwd,BCrypt.gensalt());
+            String encryptedPwd = BCrypt.hashpw(pwd, BCrypt.gensalt());
 
             user.setpwd(encryptedPwd);
             //n.setpwd(pwd);
@@ -61,9 +62,7 @@ public class MainController {
             userRepository.save(user);
             jEntity.setMsg("User account created successfully!");
 
-        }
-        else
-        {
+        } else {
             jEntity.setMsg("User account already exist!");
 
         }
@@ -80,8 +79,9 @@ public class MainController {
 
     }
 
-    @GetMapping(path="/")
-    public @ResponseBody JEntity getCurrentTime(@RequestHeader String Authorization) {
+    @GetMapping(path = "/")
+    public @ResponseBody
+    JEntity getCurrentTime(@RequestHeader String Authorization) {
         // This returns a JSON or XML with the users
 //        if(email==null || email.equals("")){
 //            return "Email is invalid";
@@ -93,13 +93,13 @@ public class MainController {
         //boolean validPwd=BCrypt.checkpw(pwd,encryptPwd);
         //#TBD validate email and pwd from database
 
-        JEntity j=new JEntity();
-        if (Authorization != null ) {
+        JEntity j = new JEntity();
+        if (Authorization != null) {
             // Authorization: Basic base64credentials
             //Authorization.toLowerCase().startsWith("basic")
 
             String base64Credentials = Authorization.substring("Basic".length()).trim();
-            if(Authorization.toLowerCase().startsWith("basic") && Base64.isBase64(base64Credentials)) {
+            if (Authorization.toLowerCase().startsWith("basic") && Base64.isBase64(base64Credentials)) {
                 byte[] credDecoded = Base64.decodeBase64(base64Credentials);
                 String credentials = new String(credDecoded, StandardCharsets.UTF_8);
                 // credentials = username:password
@@ -114,31 +114,32 @@ public class MainController {
                 if (u == null) {
                     j.setMsg("Email does not exist");
                     return j;
+                } else {
+
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        j.setMsg("Invalid Credential");
+                        return j;
+                    }
+                    Date date=new Date();
+                    String strDateFormat= "hh:mm:ss a";
+                    DateFormat dateFormat=new SimpleDateFormat(strDateFormat);
+                    String formattedDate=dateFormat.format(date);
+                    return j;
                 }
             }
+            else{
+                j.setMsg("Basic Authentication not enabled");
+                return j;
             }
-            else
-            {
-            }
+
 
         }
-        else
-        {
-        }
-
-
-
-
-
-
-
-
 
         Date date=new Date();
         String strDateFormat= "hh:mm:ss a";
         DateFormat dateFormat=new SimpleDateFormat(strDateFormat);
         String formattedDate=dateFormat.format(date);
-        return formattedDate;
+        return j;
         //#TBD return in json with http code
     }
 
