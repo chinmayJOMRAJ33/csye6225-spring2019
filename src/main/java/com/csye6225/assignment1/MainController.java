@@ -49,12 +49,31 @@ public class MainController {
         //#TBD Validate if email already exists
         //first push heta
 
-        String encryptedPwd=BCrypt.hashpw(pwd,BCrypt.gensalt());
+        User user = userRepository.findByEmail(email);
+        if(user == null){
+            //  userRepository.save(n);
+            user = new User();
+            String encryptedPwd=BCrypt.hashpw(pwd,BCrypt.gensalt());
+
+            user.setpwd(encryptedPwd);
+            //n.setpwd(pwd);
+            user.setEmail(email);
+            userRepository.save(user);
+            jEntity.setMsg("User account created successfully!");
+
+        }
+        else
+        {
+            jEntity.setMsg("User account already exist!");
+
+        }
+
+        /* String encryptedPwd=BCrypt.hashpw(pwd,BCrypt.gensalt());
         User n = new User();
         n.setpwd(encryptedPwd);
         //n.setpwd(pwd);
         n.setEmail(email);
-        userRepository.save(n);
+        userRepository.save(n); */
 
 
         return jEntity;
