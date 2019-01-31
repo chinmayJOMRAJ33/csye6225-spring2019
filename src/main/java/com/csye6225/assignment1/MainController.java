@@ -60,17 +60,33 @@ public class MainController {
     }
 
     @GetMapping(path="/")
-    public @ResponseBody String getCurrentTime(@RequestHeader String email,@RequestHeader String pwd) {
+    public @ResponseBody String getCurrentTime(@RequestHeader String Authorization) {
         // This returns a JSON or XML with the users
-        if(email==null || email.equals("")){
-            return "Email is invalid";
-        }
-        if(pwd==null || pwd.equals("")){
-            return "pwd is invalid";
-        }
+//        if(email==null || email.equals("")){
+//            return "Email is invalid";
+//        }
+//        if(pwd==null || pwd.equals("")){
+//            return "pwd is invalid";
+//        }
         //String encryptPwd=BCrypt.hashpw(pwd,BCrypt.gensalt(12));
         //boolean validPwd=BCrypt.checkpw(pwd,encryptPwd);
         //#TBD validate email and pwd from database
+
+        JEntity j=new JEntity();
+        if (Authorization != null ) {
+            // Authorization: Basic base64credentials
+            //Authorization.toLowerCase().startsWith("basic")
+        }
+        else
+        {
+        }
+
+
+
+
+
+
+
 
 
         Date date=new Date();
