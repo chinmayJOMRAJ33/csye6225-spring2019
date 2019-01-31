@@ -5,6 +5,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 //import at.favre.lib.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.*;
+import org.apache.tomcat.util.codec.binary.Base64;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -60,7 +62,7 @@ public class MainController {
     }
 
     @GetMapping(path="/")
-    public @ResponseBody String getCurrentTime(@RequestHeader String Authorization) {
+    public @ResponseBody JEntity getCurrentTime(@RequestHeader String Authorization) {
         // This returns a JSON or XML with the users
 //        if(email==null || email.equals("")){
 //            return "Email is invalid";
@@ -77,15 +79,24 @@ public class MainController {
             // Authorization: Basic base64credentials
             //Authorization.toLowerCase().startsWith("basic")
 
-            if(Authorization.toLowerCase().startsWith("basic") && Base64.isBase64(base64Credentials))
-            {
+            String base64Credentials = Authorization.substring("Basic".length()).trim();
+            if(Authorization.toLowerCase().startsWith("basic") && Base64.isBase64(base64Credentials)) {
                 byte[] credDecoded = Base64.decodeBase64(base64Credentials);
                 String credentials = new String(credDecoded, StandardCharsets.UTF_8);
                 // credentials = username:password
                 String[] values = credentials.split(":", 2);
 
-                String email=values[0];
-                String pwd=values[1];
+                String email = values[0];
+                String pwd = values[1];
+
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+                    j.setMsg("Email does not exist");
+                    return j;
+                }
+            }
             }
             else
             {
