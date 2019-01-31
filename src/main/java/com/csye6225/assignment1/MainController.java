@@ -120,7 +120,10 @@ public class MainController {
                         j.setMsg("Invalid Credential");
                         return j;
                     }
-
+                    Date date=new Date();
+                    String strDateFormat= "hh:mm:ss a";
+                    DateFormat dateFormat=new SimpleDateFormat(strDateFormat);
+                    String formattedDate=dateFormat.format(date);
                     return j;
                 }
             }
