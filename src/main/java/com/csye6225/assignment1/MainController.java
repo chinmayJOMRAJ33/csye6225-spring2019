@@ -76,6 +76,21 @@ public class MainController {
         if (Authorization != null ) {
             // Authorization: Basic base64credentials
             //Authorization.toLowerCase().startsWith("basic")
+
+            if(Authorization.toLowerCase().startsWith("basic") && Base64.isBase64(base64Credentials))
+            {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                // credentials = username:password
+                String[] values = credentials.split(":", 2);
+
+                String email=values[0];
+                String pwd=values[1];
+            }
+            else
+            {
+            }
+
         }
         else
         {
