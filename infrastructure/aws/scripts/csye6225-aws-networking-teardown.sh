@@ -60,3 +60,14 @@ then
         exit $ret
 fi
 echo "Route-Table delete------------------------>OK"
+
+aws ec2 detach-internet-gateway \
+ --internet-gateway-id $IGW_Id \
+ --vpc-id $vpc_id
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while detaching internet gateway"
+        exit $ret
+fi
+echo "IGW detached------------------------>OK"
