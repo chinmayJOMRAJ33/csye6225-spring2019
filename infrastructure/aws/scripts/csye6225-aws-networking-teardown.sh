@@ -71,3 +71,13 @@ then
         exit $ret
 fi
 echo "IGW detached------------------------>OK"
+
+aws ec2 delete-internet-gateway \
+ --internet-gateway-id $IGW_Id
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while deleting internet gateway"
+        exit $ret
+fi
+echo "IGW delete------------------------>OK"
