@@ -59,6 +59,22 @@
             { "Key" : "Network", "Value" : "Public" },
             {"Key":"Name","Value":"Public-Subnet-3"}] 
         }
+     },
+
+     "InternetGateway" : {
+        "Type" : "AWS::EC2::InternetGateway",
+        "Properties" : {
+          "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackName"} },
+                     {"Key":"Network","Value":"Public"},
+                    {"Key":"Name","Value":"Internet-Gateway"} ]
+        }
+      },
+      "AttachGateway" : {
+        "Type" : "AWS::EC2::VPCGatewayAttachment",
+        "Properties" : {
+           "VpcId" : { "Ref" : "myVPC" },
+           "InternetGatewayId" : { "Ref" : "InternetGateway" }
+        }
      }
 
     }}
