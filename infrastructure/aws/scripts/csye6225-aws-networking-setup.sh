@@ -126,4 +126,16 @@ then
         exit $ret
 fi
 
+echo "Modifying the default security group for VPC to remove existing rules"
+echo "add new rules to only allow TCP traffic on port 22 and 80 from anywhere"
+
+aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 80 --cidr 0.0.0.0/0
+
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while adding new security rules"
+     
+
 
