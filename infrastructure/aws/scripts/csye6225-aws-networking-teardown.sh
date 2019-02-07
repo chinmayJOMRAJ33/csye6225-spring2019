@@ -46,3 +46,12 @@ do
 	fi
 done
 echo "Subnets delete--------------------->OK"
+
+aws ec2 delete-route-table --route-table-id $route_tbl_id
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while deleting route table"
+        exit $ret
+fi
+echo "Route-Table delete------------------------>OK"
