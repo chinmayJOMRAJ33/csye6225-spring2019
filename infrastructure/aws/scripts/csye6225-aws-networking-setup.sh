@@ -101,3 +101,41 @@ route=$(aws ec2 create-route --route-table-id $routeTableId --destination-cidr-b
 
 #aws ec2 describe-route-tables --route-table-id $routeTableId
 
+echo "associating subnets to the route table"
+
+$(aws ec2 associate-route-table  --subnet-id "$subnetId1" --route-table-id "$routeTableId")
+$(aws ec2 associate-route-table  --subnet-id "$subnetId2" --route-table-id "$routeTableId")
+$(aws ec2 associate-route-table  --subnet-id "$subnetId3" --route-table-id "$routeTableId")
+
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while associating subnets to route table"
+        exit $ret
+fi
+
+echo "subnets added to route table, Creating security group in vpc"
+
+securityGroup=$(aws ec2 create-security-group --group-name "SSHAccess" --description "Security group for SSH access" --vpc-id "$vpcId")
+securityGroupId=$(echo -e "$securityGroup" |  /usr/bin/jq '.GroupId' | tr -d '"')
+
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while creating security group"
+        exit $ret
+fi
+
+echo "Modifying the default security group for VPC to remove existing rules"
+echo "add new rules to only allow TCP traffic on port 22 and 80 from anywhere"
+
+aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 80 --cidr 0.0.0.0/0
+
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while adding new security rules"
+     
+
+
