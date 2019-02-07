@@ -11,28 +11,38 @@ fi
 
 echo "Prepare for deleting,please wait........"
 
-vpc="$1-csye6225-vpc-1"
+vpc="$1"
 vpcname=$(aws ec2 describe-vpcs \
  --query "Vpcs[?Tags[?Key=='Name']|[?Value=='$vpc']].Tags[0].Value" \
  --output text)
+echo $vpcname
 
-vpc_id=$(aws ec2 describe-vpcs \
- --query 'Vpcs[*].{VpcId:VpcId}' \
+vpcID=$(aws ec2 describe-vpcs \
+ --query 'Vpcs[*].{Vpc:VpcId}' \
  --filters Name=is-default,Values=false \
  --output text \
   --region $region)
+echo $vpcId
+
+vpc_id="$2"
 
 route_tbl_id=$(aws ec2 describe-route-tables \
  --filters "Name=vpc-id,Values=$vpc_id" "Name=association.main, Values=false" \
- --query 'RouteTables[*].{RouteTableId:RouteTableId}' \
+ --query 'RouteTables[*].{RouteTable:RouteTableId}' \
  --output text)
+echo $route_tbl_id
 
 IGW_Id=$(aws ec2 describe-internet-gateways \
-  --query 'InternetGateways[*].{InternetGatewayId:InternetGatewayId}' \
+  --query 'InternetGateways[*].{InternetGateway:InternetGatewayId}' \
   --filters "Name=attachment.vpc-id,Values=$vpc_id" \
   --output text)
+echo $IGW_Id
 
-cho "Start to delete!!"
+#Security_grp="$3"
+
+#secure=$(aws ec2 delete-security-group --group-id $Security_grp)
+
+echo "Start to delete!!"
 while
 sub=$(aws ec2 describe-subnets \
  --filters Name=vpc-id,Values=$vpc_id \

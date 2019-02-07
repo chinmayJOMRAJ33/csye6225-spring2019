@@ -9,15 +9,22 @@ fi
 vpcName=$1
 echo "Create a VPC "$vpcName" with a 10.0.0.0/16 CIDR block";
 vpc=$(aws ec2 create-vpc --cidr-block 10.0.0.0/16 --output json)
-vpcId=$(echo -e "$vpc" | /usr/bin/jq '.Vpc.VpcId' | tr -d '"')
-aws ec2 create-tags --resources "$vpcId" --tags Key=Name,Value="$vpcName" 
-echo $vpcId;
 ret=$?
 if [ $ret -ne 0 ];
 then
         echo "Error while creating vpc"
         exit $ret
 fi
+vpcId=$(echo -e "$vpc" | /usr/bin/jq '.Vpc.VpcId' | tr -d '"')
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while finding vpc id"
+        exit $ret
+fi
+aws ec2 create-tags --resources "$vpcId" --tags Key=Name,Value="$vpcName" 
+echo $vpcId;
+
 
 echo "vpc created successfully, creating 3 public subnet in same region with different availability zone";
 
@@ -114,20 +121,24 @@ then
         exit $ret
 fi
 
-echo "subnets added to route table, Creating security group in vpc"
+echo "subnets added to route table, finding security group for vpc"
 
-securityGroup=$(aws ec2 create-security-group --group-name "SSHAccess" --description "Security group for SSH access" --vpc-id "$vpcId")
-securityGroupId=$(echo -e "$securityGroup" |  /usr/bin/jq '.GroupId' | tr -d '"')
+#securityGroup=$(aws ec2 create-security-group --group-name "SSHAccess" --description "Security group for SSH access" --vpc-id "$vpcId")
+
+securityGroup=$(aws ec2 describe-security-groups --filters Name=vpc-id,Values=$vpcId)
+securityGroupId=$(echo -e "$securityGroup" |  /usr/bin/jq '.SecurityGroups[0].GroupId' | tr -d '"')
+
+#echo "$securityGroupId"
 
 ret=$?
 if [ $ret -ne 0 ];
 then
-        echo "Error while creating security group"
+        echo "Error while finding security group"
         exit $ret
 fi
 
 echo "Modifying the default security group for VPC to remove existing rules"
-echo "add new rules to only allow TCP traffic on port 22 and 80 from anywhere"
+echo "adding new rules to only allow TCP traffic on port 22 and 80 from anywhere"
 
 aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 22 --cidr 0.0.0.0/0
 aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 80 --cidr 0.0.0.0/0
