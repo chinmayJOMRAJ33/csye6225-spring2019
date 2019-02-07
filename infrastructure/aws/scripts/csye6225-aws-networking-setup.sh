@@ -58,4 +58,46 @@ then
         exit $ret
 fi
 
+echo "subnet3 created successfully, creating internet-gateway";
+
+internetGateway=$(aws ec2 create-internet-gateway)
+gatewayId=$(echo -e "$internetGateway" |  /usr/bin/jq '.InternetGateway.InternetGatewayId' | tr -d '"')
+
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while creating internet gateway"
+        exit $ret
+fi
+
+echo "internet gateway created successfully, attaching internet gateway to vpc";
+
+aws ec2 attach-internet-gateway --vpc-id "$vpcId" --internet-gateway-id "$gatewayId"
+
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while attaching internet gateway to vpc"
+        exit $ret
+fi
+
+echo "creating route table for vpc ..";
+
+routeTable=$(aws ec2 create-route-table --vpc-id "$vpcId")
+routeTableId=$(echo -e "$routeTable" |  /usr/bin/jq '.RouteTable.RouteTableId' | tr -d '"')
+
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while creating route table for vpc"
+        exit $ret
+fi
+
+echo "route table created, creating a route in the route table that points all traffic (0.0.0.0/0) to the Internet gateway"
+
+route=$(aws ec2 create-route --route-table-id $routeTableId --destination-cidr-block 0.0.0.0/0 --gateway-id $gatewayId)
+
+#echo "route table description"
+
+#aws ec2 describe-route-tables --route-table-id $routeTableId
 
