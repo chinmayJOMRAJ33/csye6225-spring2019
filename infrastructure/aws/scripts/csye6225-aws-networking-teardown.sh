@@ -21,3 +21,23 @@ vpc_id=$(aws ec2 describe-vpcs \
  --filters Name=is-default,Values=false \
  --output text \
   --region $region)
+
+cho "Start to delete!!"
+while
+sub=$(aws ec2 describe-subnets \
+ --filters Name=vpc-id,Values=$vpc_id \
+ --query 'Subnets[*].SubnetId' \
+ --output text)
+[[ ! -z $sub ]]
+do
+        var1=$(echo $sub | cut -f1 -d" ")
+       # echo $var1 is deleted 
+        aws ec2 delete-subnet --subnet-id $var1
+	ret=$?
+	if [ $ret -ne 0 ];
+	then
+        	echo "Error while deleting subnet"
+        	exit $ret
+	fi
+done
+echo "Subnets delete--------------------->OK"
