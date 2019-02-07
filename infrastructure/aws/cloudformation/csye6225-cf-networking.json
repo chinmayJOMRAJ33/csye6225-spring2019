@@ -59,6 +59,40 @@
             { "Key" : "Network", "Value" : "Public" },
             {"Key":"Name","Value":"Public-Subnet-3"}] 
         }
+     },
+
+     "InternetGateway" : {
+        "Type" : "AWS::EC2::InternetGateway",
+        "Properties" : {
+          "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackName"} },
+                     {"Key":"Network","Value":"Public"},
+                    {"Key":"Name","Value":"Internet-Gateway"} ]
+        }
+      },
+      "AttachGateway" : {
+        "Type" : "AWS::EC2::VPCGatewayAttachment",
+        "Properties" : {
+           "VpcId" : { "Ref" : "myVPC" },
+           "InternetGatewayId" : { "Ref" : "InternetGateway" }
+        }
+     },
+     "MyPubRouteTable" : {
+        "Type" : "AWS::EC2::RouteTable",
+        "Properties" : {
+          "VpcId" : {"Ref" : "myVPC"},
+          "Tags" : [ {"Key" : "Application", "Value" : { "Ref" : "AWS::StackName"} },
+            { "Key" : "Network", "Value" : "Public" },
+            {"Key":"Name","Value":"Public-Route-Table"} ]
+        }
+      },
+      "myRoute" : {
+        "Type" : "AWS::EC2::Route",
+        "DependsOn": "AttachGateway",
+        "Properties" : {
+           "RouteTableId" : { "Ref" : "MyPubRouteTable" },
+           "DestinationCidrBlock" : "0.0.0.0/0",
+           "GatewayId" : { "Ref" : "InternetGateway" }
+        }
      }
 
     }}
