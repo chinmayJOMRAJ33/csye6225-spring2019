@@ -1,4 +1,4 @@
-#!/bin/bash
+
 
 if [ $# -eq 0 ];
 then 
@@ -13,7 +13,7 @@ then
         echo "Error in template"
         exit $ret
 fi
-aws cloudformation create-stack --stack-name $stack_name --template-body file://csye6225-cf-networking.json
+aws cloudformation create-stack --stack-name $stack_name --template-body file://csye6225-cf-networking.json --parameters file://parameters.json
 ret=$?
 if [ $ret -eq 0 ];
 then 
