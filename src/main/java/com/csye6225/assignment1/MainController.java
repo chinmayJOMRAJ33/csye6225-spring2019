@@ -31,11 +31,10 @@ public class MainController {
 
     @PostMapping(path = "/user/register")
     public @ResponseBody
-    JEntity addNewUser(@RequestParam String email
-            , @RequestParam String pwd, HttpServletResponse response) {
+    JEntity addNewUser(@RequestBody User user, HttpServletResponse response) {
         JEntity jEntity = new JEntity();
 
-        if (validateEmail(email) == false) {
+        if (validateEmail(user.getEmail()) == false) {
             jEntity.setMsg("Please enter a valid email id");
 
             jEntity.setStatuscode(HttpStatus.FORBIDDEN);
@@ -45,7 +44,7 @@ public class MainController {
             return jEntity;
         }
 
-         if (validatePwd(pwd)==false){
+         if (validatePwd(user.getpwd())==false){
              jEntity.setMsg("Password should atleast have 1 Lower case, 1 upper case, 1 digit and 1 special character ");
 
              jEntity.setStatuscode(HttpStatus.EXPECTATION_FAILED);
@@ -55,13 +54,13 @@ public class MainController {
              return jEntity;
         }
 
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            user = new User();
-            String encryptedPwd = BCrypt.hashpw(pwd, BCrypt.gensalt(12));
-            user.setpwd(encryptedPwd);
-            user.setEmail(email);
-            userRepository.save(user);
+        User user1 = userRepository.findByEmail(user.getEmail());
+        if (user1 == null) {
+            user1 = new User();
+            String encryptedPwd = BCrypt.hashpw(user.getpwd(), BCrypt.gensalt(12));
+            user1.setpwd(encryptedPwd);
+            user1.setEmail(user.getEmail());
+            userRepository.save(user1);
 
 
             jEntity.setMsg("User account created successfully!");
