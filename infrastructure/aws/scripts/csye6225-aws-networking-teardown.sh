@@ -81,3 +81,13 @@ then
         exit $ret
 fi
 echo "IGW delete------------------------>OK"
+
+aws ec2 delete-vpc --vpc-id $vpc_id
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while deleting vpc"
+        exit $ret
+fi
+echo "VPC delete------------------------>OK"
+echo "Complete!!"
