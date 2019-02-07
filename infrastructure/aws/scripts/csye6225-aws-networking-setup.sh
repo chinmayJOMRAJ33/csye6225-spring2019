@@ -103,9 +103,9 @@ route=$(aws ec2 create-route --route-table-id $routeTableId --destination-cidr-b
 
 echo "associating subnets to the route table"
 
-$(aws ec2 associate-route-table  --subnet-id "$subnetId1" --route-table-id "$routeTableId")
-$(aws ec2 associate-route-table  --subnet-id "$subnetId2" --route-table-id "$routeTableId")
-$(aws ec2 associate-route-table  --subnet-id "$subnetId3" --route-table-id "$routeTableId")
+routeSubnet1=$(aws ec2 associate-route-table  --subnet-id "$subnetId1" --route-table-id "$routeTableId")
+routeSubnet2=$(aws ec2 associate-route-table  --subnet-id "$subnetId2" --route-table-id "$routeTableId")
+routeSubnet3=$(aws ec2 associate-route-table  --subnet-id "$subnetId3" --route-table-id "$routeTableId")
 
 ret=$?
 if [ $ret -ne 0 ];
@@ -136,6 +136,10 @@ ret=$?
 if [ $ret -ne 0 ];
 then
         echo "Error while adding new security rules"
+	exit $ret
+fi
+
+echo "Stack created successfully"
      
 
 
