@@ -22,6 +22,11 @@ vpc_id=$(aws ec2 describe-vpcs \
  --output text \
   --region $region)
 
+route_tbl_id=$(aws ec2 describe-route-tables \
+ --filters "Name=vpc-id,Values=$vpc_id" "Name=association.main, Values=false" \
+ --query 'RouteTables[*].{RouteTableId:RouteTableId}' \
+ --output text)
+
 cho "Start to delete!!"
 while
 sub=$(aws ec2 describe-subnets \
