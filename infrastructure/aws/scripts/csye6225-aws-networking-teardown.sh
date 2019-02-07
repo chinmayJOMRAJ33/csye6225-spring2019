@@ -27,6 +27,11 @@ route_tbl_id=$(aws ec2 describe-route-tables \
  --query 'RouteTables[*].{RouteTableId:RouteTableId}' \
  --output text)
 
+IGW_Id=$(aws ec2 describe-internet-gateways \
+  --query 'InternetGateways[*].{InternetGatewayId:InternetGatewayId}' \
+  --filters "Name=attachment.vpc-id,Values=$vpc_id" \
+  --output text)
+
 cho "Start to delete!!"
 while
 sub=$(aws ec2 describe-subnets \
