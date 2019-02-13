@@ -396,6 +396,24 @@ public class MainController {
     }
 
 
+    @PutMapping (path="/note/{id}")
+    public @ResponseBody Object upateNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        //JEntity j = new JEntity();
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note n=null;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+
+
+
+        }
+        // j.setMsg("User is not logged in!");
+        msg.append("You are not Authorized to use this note");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
+
+
 
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
