@@ -182,6 +182,12 @@ public class MainController {
         return fetchAllNotes(httpServletRequest,response);
     }
 
+//    @DeleteMapping  (path="/note/{id}")
+//    public @ResponseBody Object deletNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+//        return deleteNote(note,id,httpServletRequest,response);
+//
+//    }
+
 
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
         String auth=httpServletRequest.getHeader("Authorization");
@@ -488,6 +494,80 @@ public class MainController {
     }
 
 
+
+    @DeleteMapping  (path="/note/{id}")
+    public @ResponseBody Object deletNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        //JEntity j = new JEntity();
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note n=null;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                JEntity j =new JEntity();
+
+
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+
+                    msg.append("Email is Invalid");
+                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    return n;
+
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is Invalid");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+
+                    }
+                    Note n1 = noteRepository.findById(id);
+                    System.out.println("n1:"+n1);
+                    if (n1 == null)
+                    {
+
+
+                        msg.append("Note not found");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return n1;
+
+                    }
+                    else {
+
+                        if (n1.getUser().getId() == u.getId()) {
+
+                            Instant ins = Instant.now();
+
+                            n1.setUpdated_on(ins.toString());
+
+                            noteRepository.delete(n1);
+                            setResponse(HttpStatus.OK, response);
+                            return n1;
+                        }
+                    }
+                }
+            }
+            else{
+                msg.append("You are not Authorized to use this note");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
+
+
+        }
+        // j.setMsg("User is not logged in!");
+        msg.append("You are not Authorized to use this note");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
 
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
