@@ -24,6 +24,9 @@ import java.util.regex.Pattern;
 public class MainController {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private NoteRepository noteRepository;
+
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX =
             Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
@@ -163,17 +166,69 @@ public class MainController {
         return j;
     }
 
-//    @GetMapping(path = "/hi")
-//    public @ResponseBody
-//    JEntity getStatus(HttpServletRequest httpServletRequest, HttpServletResponse response) {
-//        JEntity j = new JEntity();
-//        j.setStatuscode(HttpStatus.CREATED);
-//        j.setCode(HttpStatus.CREATED.value());
-//        response.setStatus(HttpStatus.CREATED.value());
-//        response.setHeader("status1","barabar");
-//        return j;
-//
-//    }
+    @PostMapping(path="/note")
+    public @ResponseBody Note createNote(@RequestBody Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return saveNote(note,httpServletRequest,response);
+    }
+
+
+    public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note n=null;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                // request.
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+                    msg.append("Email is invalid");
+                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    return n;
+
+                } else {
+
+
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+
+                    }
+                    if (note==null){
+                        msg.append("Please enter title and content for note");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return n;
+                    }
+                    n=createNote(u,note);
+                    noteRepository.save(n);
+                    setResponse(HttpStatus.CREATED,response);
+
+                    return n;
+
+                }
+            }
+            else{
+
+                msg.append("User is not logged in");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
+
+
+        }
+        msg.append("User is not logged in");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
+
 
     public Note createNote(User u,Note note){
         Note n=new Note();
