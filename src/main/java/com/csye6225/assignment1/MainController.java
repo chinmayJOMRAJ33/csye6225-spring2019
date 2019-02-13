@@ -193,7 +193,17 @@ public class MainController {
         response.setHeader("status", hs.toString());
     }
 
-    
+    public void setResponse(HttpStatus hs,HttpServletResponse response,StringBuffer message){
+        try {
+            response.sendError(hs.value(),message.toString());
+        }
+        catch(Exception e){
+
+        }
+        response.setStatus(hs.value());
+        response.setHeader("status", hs.toString());
+
+    }
 
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
