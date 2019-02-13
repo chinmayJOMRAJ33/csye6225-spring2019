@@ -15,6 +15,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -176,6 +177,10 @@ public class MainController {
         return getNoteWithIdData(id,httpServletRequest,response);
     }
 
+    @GetMapping(path="/note")
+    public @ResponseBody Set<Note> getAllNotes(HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return fetchAllNotes(httpServletRequest,response);
+    }
 
 
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
@@ -327,6 +332,69 @@ public class MainController {
         setResponse(HttpStatus.FORBIDDEN,response,msg);
         return n;
     }
+
+    public Set<Note> fetchAllNotes(HttpServletRequest httpServletRequest, HttpServletResponse response){
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Set<Note> n=null;
+        int userid;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                // request.
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+
+                    msg.append("Email is invalid");
+                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    return n;
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+                    }
+
+                    n = u.getLstNote();
+
+                    if (n == null){
+                        msg.append("Notes could not be found for this user");
+                        setResponse(HttpStatus.NO_CONTENT,response,msg);
+                        return n;
+                    }
+//                if(n.getUser().getId()!=u.getId()){
+//                    msg.append("User is not authorized to use this note");
+//                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+//                    return null;
+//                }
+
+                    setResponse(HttpStatus.OK,response);
+                    return n;
+
+                }
+            }
+            else{
+
+                msg.append("User is not logged in");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
+
+
+        }
+        msg.append("User is not logged in");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
+
 
 
     public static boolean validateEmail(String emailStr) {
