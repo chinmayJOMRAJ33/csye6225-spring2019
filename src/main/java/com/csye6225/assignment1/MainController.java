@@ -529,6 +529,17 @@ public class MainController {
                         return n;
 
                     }
+                    Note n1 = noteRepository.findById(id);
+                    System.out.println("n1:"+n1);
+                    if (n1 == null)
+                    {
+
+
+                        msg.append("Note not found");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return n1;
+
+                    }
                 }
             }
             else{
