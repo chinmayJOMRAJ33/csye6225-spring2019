@@ -357,6 +357,26 @@ public class MainController {
                     return n;
 
                 } else {
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+                    }
+
+                    n = u.getLstNote();
+
+                    if (n == null){
+                        msg.append("Notes could not be found for this user");
+                        setResponse(HttpStatus.NO_CONTENT,response,msg);
+                        return n;
+                    }
+//                if(n.getUser().getId()!=u.getId()){
+//                    msg.append("User is not authorized to use this note");
+//                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+//                    return null;
+//                }
+
+                    setResponse(HttpStatus.OK,response);
                     return n;
 
                 }
