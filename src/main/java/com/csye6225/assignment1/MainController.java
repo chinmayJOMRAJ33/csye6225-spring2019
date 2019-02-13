@@ -171,6 +171,12 @@ public class MainController {
         return saveNote(note,httpServletRequest,response);
     }
 
+    @GetMapping(path="/note/{id}")
+    public @ResponseBody Note getNoteWithId(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return getNoteWithIdData(id,httpServletRequest,response);
+    }
+
+
 
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
         String auth=httpServletRequest.getHeader("Authorization");
@@ -204,7 +210,7 @@ public class MainController {
                     }
                     if (note==null){
                         msg.append("Please enter title and content for note");
-                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
                         return n;
                     }
                     n=createNote(u,note);
@@ -322,10 +328,6 @@ public class MainController {
         return n;
     }
 
-    @GetMapping(path="/note/{id}")
-    public @ResponseBody Note getNoteWithId(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
-        return getNoteWithIdData(id,httpServletRequest,response);
-    }
 
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
