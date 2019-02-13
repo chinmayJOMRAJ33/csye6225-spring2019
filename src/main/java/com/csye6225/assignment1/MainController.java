@@ -182,6 +182,12 @@ public class MainController {
         return fetchAllNotes(httpServletRequest,response);
     }
 
+//    @DeleteMapping  (path="/note/{id}")
+//    public @ResponseBody Object deletNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+//        return deleteNote(note,id,httpServletRequest,response);
+//
+//    }
+
 
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
         String auth=httpServletRequest.getHeader("Authorization");
@@ -488,6 +494,15 @@ public class MainController {
     }
 
 
+
+    @DeleteMapping  (path="/note/{id}")
+    public @ResponseBody Object deletNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        //JEntity j = new JEntity();
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note n=null;
+        return n;
+    }
 
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
