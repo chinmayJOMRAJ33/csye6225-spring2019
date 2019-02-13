@@ -13,7 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -173,7 +175,35 @@ public class MainController {
 //
 //    }
 
+    public Note createNote(User u,Note note){
+        Note n=new Note();
+        Instant ins=Instant.now();
+        n.setId(UUID.randomUUID().toString());
+        n.setCreated_on(ins.toString());
+        n.setUpdated_on(ins.toString());
+        n.setTitle(note.getTitle());
+        n.setContent(note.getContent());
+        n.setUser(u);
+        return n;
+    }
 
+    public void setResponse(HttpStatus hs,HttpServletResponse response){
+
+        response.setStatus(hs.value());
+        response.setHeader("status", hs.toString());
+    }
+
+    public void setResponse(HttpStatus hs,HttpServletResponse response,StringBuffer message){
+        try {
+            response.sendError(hs.value(),message.toString());
+        }
+        catch(Exception e){
+
+        }
+        response.setStatus(hs.value());
+        response.setHeader("status", hs.toString());
+
+    }
 
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
