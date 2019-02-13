@@ -1,9 +1,7 @@
 package com.csye6225.assignment1;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class User {
@@ -14,6 +12,18 @@ public class User {
     private String pwd;
 
     private String email;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Note> notes;
+
+
+    public Set<Note> getLstNote() {
+        return notes;
+    }
+
+    public void setLstNote(Set<Note> lstNote) {
+        this.notes = lstNote;
+    }
 
     public Integer getId() {
         return id;
