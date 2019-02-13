@@ -187,7 +187,14 @@ public class MainController {
         return n;
     }
 
-   
+    public void setResponse(HttpStatus hs,HttpServletResponse response){
+
+        response.setStatus(hs.value());
+        response.setHeader("status", hs.toString());
+    }
+
+    
+
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
         return matcher.find();
