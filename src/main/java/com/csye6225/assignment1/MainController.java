@@ -540,6 +540,19 @@ public class MainController {
                         return n1;
 
                     }
+                    else {
+
+                        if (n1.getUser().getId() == u.getId()) {
+
+                            Instant ins = Instant.now();
+
+                            n1.setUpdated_on(ins.toString());
+
+                            noteRepository.delete(n1);
+                            setResponse(HttpStatus.OK, response);
+                            return n1;
+                        }
+                    }
                 }
             }
             else{
