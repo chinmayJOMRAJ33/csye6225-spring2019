@@ -322,6 +322,11 @@ public class MainController {
         return n;
     }
 
+    @GetMapping(path="/note/{id}")
+    public @ResponseBody Note getNoteWithId(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return getNoteWithIdData(id,httpServletRequest,response);
+    }
+
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
         return matcher.find();
