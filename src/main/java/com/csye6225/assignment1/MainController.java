@@ -424,6 +424,52 @@ public class MainController {
 
 
                 } else {
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is Invalid");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+
+                    }
+
+
+
+                    Note n1 = noteRepository.findById(id);
+                    System.out.println("n1:"+n1);
+                    if (n1 == null)
+                    {
+
+
+                        msg.append("Note not found");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return n1;
+
+                    }
+                    else {
+
+                        if (n1.getUser().getId() == u.getId()) {
+//
+//                        Note n = new Note();
+                            Instant ins = Instant.now();
+//                        n.setId(UUID.randomUUID().toString());
+//
+//                        n.setCreated_on(ins.toString());
+                            n1.setUpdated_on(ins.toString());
+                            n1.setTitle(note.getTitle());
+                            n1.setContent(note.getContent());
+
+                            noteRepository.save(n1);
+                            setResponse(HttpStatus.OK,response);
+                            return n1;
+
+
+
+                        } else {
+
+                            msg.append("You are not Authorized to use this note");
+                            setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                            return n1;
+                        }
+                    }
 
                 }
             }
@@ -432,7 +478,7 @@ public class MainController {
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
                 return n;
             }
-            
+
 
         }
         // j.setMsg("User is not logged in!");
