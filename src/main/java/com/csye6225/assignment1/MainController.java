@@ -403,8 +403,36 @@ public class MainController {
         StringBuffer msg=new StringBuffer();
         Note n=null;
         if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                JEntity j =new JEntity();
 
 
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+
+                    msg.append("Email is Invalid");
+                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    return n;
+
+
+                } else {
+
+                }
+            }
+            else{
+                msg.append("You are not Authorized to use this note");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
+            
 
         }
         // j.setMsg("User is not logged in!");
