@@ -476,8 +476,8 @@ public class MainController {
                             n1.setContent(note.getContent());
 
                             noteRepository.save(n1);
-                            setResponse(HttpStatus.OK,response);
-                            return n1;
+                            setResponse(HttpStatus.NO_CONTENT,response);
+                            return null;
 
 
 
@@ -561,8 +561,8 @@ public class MainController {
                             n1.setUpdated_on(ins.toString());
 
                             noteRepository.delete(n1);
-                            setResponse(HttpStatus.OK, response);
-                            return n1;
+                            setResponse(HttpStatus.NO_CONTENT, response);
+                            return null;
                         }
                     }
                 }
