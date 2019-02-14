@@ -171,23 +171,54 @@ securityGroupId=$(echo -e "$securityGroup" |  /usr/bin/jq '.SecurityGroups[0].Gr
 
 
 echo "Modifying the default security group for VPC to remove existing rules"
-echo "adding new rules to only allow TCP traffic on port 22 and 80 from anywhere"
 
-aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 22 --cidr 0.0.0.0/0
-
+aws ec2 revoke-security-group-ingress --group-id "$securityGroupId" --source-group "$securityGroupId" --protocol all --port all
 ret=$?
 if [ $ret -ne 0 ];
 then
-        echo "Error while adding security rule : tcp to port 22"
+        echo "Error while modifying the default security group for VPC to remove existing inbound rules"
+	exit $ret
+fi
+
+aws ec2 revoke-security-group-egress --group-id "$securityGroupId" --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "0.0.0.0/0"}]}]'
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while modifying the default security group for VPC to remove existing outbound rules"
+	exit $ret
+fi
+
+echo "adding new rules to only allow TCP traffic on port 22 and 80 from anywhere"
+
+aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 22 --cidr 0.0.0.0/0
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while adding security rule : tcp to port 22 inbound"
+	exit $ret
+fi
+
+aws ec2 authorize-security-group-egress --group-id "$securityGroupId" --protocol tcp --port 22 --cidr 0.0.0.0/0
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while adding security rule : tcp to port 22 outbound"
 	exit $ret
 fi
 
 aws ec2 authorize-security-group-ingress --group-id "$securityGroupId" --protocol tcp --port 80 --cidr 0.0.0.0/0
-
 ret=$?
 if [ $ret -ne 0 ];
 then
-        echo "Error while adding security rule : tcp to port 80"
+        echo "Error while adding security rule : tcp to port 80 inbound"
+	exit $ret
+fi
+
+aws ec2 authorize-security-group-egress --group-id "$securityGroupId" --protocol tcp --port 80 --cidr 0.0.0.0/0
+ret=$?
+if [ $ret -ne 0 ];
+then
+        echo "Error while adding security rule : tcp to port 80 outbound"
 	exit $ret
 fi
 
