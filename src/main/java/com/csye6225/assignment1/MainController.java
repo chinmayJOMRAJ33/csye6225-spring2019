@@ -203,7 +203,7 @@ public class MainController {
 
                 if (u == null) {
                     msg.append("Email is invalid");
-                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
                     return n;
 
                 } else {
@@ -364,7 +364,7 @@ public class MainController {
                 if (u == null) {
 
                     msg.append("Email is invalid");
-                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
                     return n;
 
                 } else {
@@ -431,7 +431,7 @@ public class MainController {
                 if (u == null) {
 
                     msg.append("Email is Invalid");
-                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
                     return n;
 
 
@@ -530,7 +530,7 @@ public class MainController {
                 if (u == null) {
 
                     msg.append("Email is Invalid");
-                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
                     return n;
 
 
