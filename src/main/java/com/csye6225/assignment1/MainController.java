@@ -182,11 +182,7 @@ public class MainController {
         return fetchAllNotes(httpServletRequest,response);
     }
 
-//    @DeleteMapping  (path="/note/{id}")
-//    public @ResponseBody Object deletNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
-//        return deleteNote(note,id,httpServletRequest,response);
-//
-//    }
+
 
 
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
@@ -390,11 +386,7 @@ public class MainController {
                         setResponse(HttpStatus.NOT_FOUND,response,msg);
                         return null;
                     }
-//                if(n.getUser().getId()!=u.getId()){
-//                    msg.append("User is not authorized to use this note");
-//                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
-//                    return null;
-//                }
+//
 
                     setResponse(HttpStatus.OK,response);
                     return n;
