@@ -170,6 +170,28 @@
                 } ]
         }
       },
+      "Subnet1RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId" : { "Ref" : "MyPubRouteTable" },
+            "SubnetId" : { "Ref" : "myPubSubnet1" }
+         }
+      },
+      "Subnet2RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId" : { "Ref" : "MyPubRouteTable" },
+            "SubnetId" : { "Ref" : "myPubSubnet2" }
+         }
+      },
+      "Subnet3RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId" : { "Ref" : "MyPubRouteTable" },
+            "SubnetId" : { "Ref" : "myPubSubnet3" }
+         }
+      }
+      ,
       "myRoute" : {
         "Type" : "AWS::EC2::Route",
         "DependsOn": "AttachGateway",
