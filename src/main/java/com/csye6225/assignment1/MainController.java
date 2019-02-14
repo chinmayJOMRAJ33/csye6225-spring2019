@@ -295,7 +295,7 @@ public class MainController {
                 if (u == null) {
 
                     msg.append("Email is invalid");
-                    setResponse(HttpStatus.NOT_ACCEPTABLE,response,msg);
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
                     return n;
 
                 } else {
@@ -335,7 +335,7 @@ public class MainController {
 
         }
         msg.append("User is not logged in");
-        setResponse(HttpStatus.FORBIDDEN,response,msg);
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
         return n;
     }
 
@@ -373,8 +373,13 @@ public class MainController {
 
                     if (n == null){
                         msg.append("Notes could not be found for this user");
-                        setResponse(HttpStatus.NO_CONTENT,response,msg);
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
                         return n;
+                    }
+                    if (n.isEmpty()){
+                        msg.append("Notes could not be found for this user");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return null;
                     }
 //                if(n.getUser().getId()!=u.getId()){
 //                    msg.append("User is not authorized to use this note");
