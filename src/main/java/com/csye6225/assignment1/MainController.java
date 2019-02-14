@@ -8,15 +8,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.*;
 import org.apache.tomcat.util.codec.binary.Base64;
 
+import javax.persistence.Convert;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -250,7 +250,9 @@ public class MainController {
     public Note createNote(User u,Note note){
         Note n=new Note();
         Instant ins=Instant.now();
-        n.setId(UUID.randomUUID().toString());
+
+
+      //  n.setId(UUID.randomUUID().toString());
         n.setCreated_on(ins.toString());
         n.setUpdated_on(ins.toString());
         n.setTitle(note.getTitle());

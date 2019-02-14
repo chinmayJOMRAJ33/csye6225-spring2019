@@ -1,6 +1,7 @@
 package com.csye6225.assignment1;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -8,11 +9,11 @@ import javax.persistence.*;
 public class Note {
 
     @Id
-//    @GeneratedValue(generator = "UUID")
-//    @GenericGenerator(
-//            name="UUID",
-//            strategy = "org.hibernate.id.UUIDGenerator"
-//    )
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name="UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
     @Column(name="Uid",updatable = false,nullable = false)
     private String id;
     private String content;
