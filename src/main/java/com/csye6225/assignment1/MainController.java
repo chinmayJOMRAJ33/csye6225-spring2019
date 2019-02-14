@@ -224,6 +224,11 @@ public class MainController {
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
                         return n;
                     }
+                    if (note.getContent()==null || note.getTitle()==null){
+                        msg.append("Please enter title and content for note");
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        return n;
+                    }
                     n=createNote(u,note);
                     noteRepository.save(n);
                     setResponse(HttpStatus.CREATED,response);
@@ -268,14 +273,15 @@ public class MainController {
     }
 
     public void setResponse(HttpStatus hs,HttpServletResponse response,StringBuffer message){
+        response.setStatus(hs.value());
+        response.setHeader("status", hs.toString());
         try {
             response.sendError(hs.value(),message.toString());
         }
         catch(Exception e){
 
         }
-        response.setStatus(hs.value());
-        response.setHeader("status", hs.toString());
+
 
     }
     public Note getNoteWithIdData(String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
@@ -316,6 +322,7 @@ public class MainController {
                         setResponse(HttpStatus.NOT_FOUND,response,msg);
                         return n;
                     }
+
                     if(n.getUser().getId()!=u.getId()){
                         msg.append("User is not authorized to use this note");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
@@ -460,7 +467,13 @@ public class MainController {
                     else {
 
                         if (n1.getUser().getId() == u.getId()) {
-//
+
+                            if (note.getContent()==null || note.getTitle()==null){
+                                msg.append("Please enter title and content for note");
+                                setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                                return null;
+                            }
+
 //                        Note n = new Note();
                             Instant ins = Instant.now();
 //                        n.setId(UUID.randomUUID().toString());
@@ -503,7 +516,7 @@ public class MainController {
 
 
     @DeleteMapping  (path="/note/{id}")
-    public @ResponseBody Object deletNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+    public @ResponseBody Object deleteNote(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
         //JEntity j = new JEntity();
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
@@ -584,5 +597,7 @@ public class MainController {
         Matcher matcher = VALID_PWD_REGEX.matcher(pwdStr);
         return matcher.find();
     }
+
+
 
 }
