@@ -452,7 +452,7 @@ public class MainController {
 
 
                         msg.append("Note not found");
-                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
                         return n1;
 
                     }
@@ -548,7 +548,7 @@ public class MainController {
 
 
                         msg.append("Note not found");
-                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
                         return n1;
 
                     }
