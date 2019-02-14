@@ -8,12 +8,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.*;
 import org.apache.tomcat.util.codec.binary.Base64;
 
+import javax.persistence.Convert;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +25,9 @@ import java.util.regex.Pattern;
 public class MainController {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private NoteRepository noteRepository;
+
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX =
             Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 
@@ -161,19 +167,419 @@ public class MainController {
         return j;
     }
 
-//    @GetMapping(path = "/hi")
-//    public @ResponseBody
-//    JEntity getStatus(HttpServletRequest httpServletRequest, HttpServletResponse response) {
-//        JEntity j = new JEntity();
-//        j.setStatuscode(HttpStatus.CREATED);
-//        j.setCode(HttpStatus.CREATED.value());
-//        response.setStatus(HttpStatus.CREATED.value());
-//        response.setHeader("status1","barabar");
-//        return j;
+    @PostMapping(path="/note")
+    public @ResponseBody Note createNote(@RequestBody Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return saveNote(note,httpServletRequest,response);
+    }
+
+    @GetMapping(path="/note/{id}")
+    public @ResponseBody Note getNoteWithId(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return getNoteWithIdData(id,httpServletRequest,response);
+    }
+
+    @GetMapping(path="/note")
+    public @ResponseBody Set<Note> getAllNotes(HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return fetchAllNotes(httpServletRequest,response);
+    }
+
+
+
+
+    public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note n=null;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                // request.
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+                    msg.append("Email is invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    return n;
+
+                } else {
+
+
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+
+                    }
+                    if (note==null){
+                        msg.append("Please enter title and content for note");
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        return n;
+                    }
+                    if (note.getContent()==null || note.getTitle()==null){
+                        msg.append("Please enter title and content for note");
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        return n;
+                    }
+                    n=createNote(u,note);
+                    noteRepository.save(n);
+                    setResponse(HttpStatus.CREATED,response);
+
+                    return n;
+
+                }
+            }
+            else{
+
+                msg.append("User is not logged in");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
+
+
+        }
+        msg.append("User is not logged in");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
+
+
+    public Note createNote(User u,Note note){
+        Note n=new Note();
+        Instant ins=Instant.now();
+
+
+      //  n.setId(UUID.randomUUID().toString());
+        n.setCreated_on(ins.toString());
+        n.setUpdated_on(ins.toString());
+        n.setTitle(note.getTitle());
+        n.setContent(note.getContent());
+        n.setUser(u);
+        return n;
+    }
+
+    public void setResponse(HttpStatus hs,HttpServletResponse response){
+
+        response.setStatus(hs.value());
+        response.setHeader("status", hs.toString());
+    }
+
+    public void setResponse(HttpStatus hs,HttpServletResponse response,StringBuffer message){
+        response.setStatus(hs.value());
+        response.setHeader("status", hs.toString());
+        try {
+            response.sendError(hs.value(),message.toString());
+        }
+        catch(Exception e){
+
+        }
+
+
+    }
+    public Note getNoteWithIdData(String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note n=null;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                // request.
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+
+                    msg.append("Email is invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    return n;
+
+                } else {
+
+
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+
+                    }
+                    n=noteRepository.findById(id);
+
+                    if (n==null){
+                        msg.append("Note could not be found. Please enter a valid note id");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return n;
+                    }
+
+                    if(n.getUser().getId()!=u.getId()){
+                        msg.append("User is not authorized to use this note");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return null;
+                    }
+
+                    setResponse(HttpStatus.OK,response);
+                    return n;
+
+                }
+            }
+            else{
+
+                msg.append("User is not logged in");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
+
+
+        }
+        msg.append("User is not logged in");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
+
+    public Set<Note> fetchAllNotes(HttpServletRequest httpServletRequest, HttpServletResponse response){
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Set<Note> n=null;
+        int userid;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                // request.
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+
+                    msg.append("Email is invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    return n;
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+                    }
+
+                    n = u.getLstNote();
+
+                    if (n == null){
+                        msg.append("Notes could not be found for this user");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return n;
+                    }
+                    if (n.isEmpty()){
+                        msg.append("Notes could not be found for this user");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return null;
+                    }
 //
-//    }
+
+                    setResponse(HttpStatus.OK,response);
+                    return n;
+
+                }
+            }
+            else{
+
+                msg.append("User is not logged in");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
 
 
+        }
+        msg.append("User is not logged in");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
+
+
+    @PutMapping (path="/note/{id}")
+    public @ResponseBody Object upateNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        //JEntity j = new JEntity();
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note n=null;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                JEntity j =new JEntity();
+
+
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+
+                    msg.append("Email is Invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    return n;
+
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is Invalid");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+
+                    }
+
+
+
+                    Note n1 = noteRepository.findById(id);
+                    System.out.println("n1:"+n1);
+                    if (n1 == null)
+                    {
+
+
+                        msg.append("Note not found");
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        return n1;
+
+                    }
+                    else {
+
+                        if (n1.getUser().getId() == u.getId()) {
+
+                            if (note.getContent()==null || note.getTitle()==null){
+                                msg.append("Please enter title and content for note");
+                                setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                                return null;
+                            }
+
+//                        Note n = new Note();
+                            Instant ins = Instant.now();
+//                        n.setId(UUID.randomUUID().toString());
+//
+//                        n.setCreated_on(ins.toString());
+                            n1.setUpdated_on(ins.toString());
+                            n1.setTitle(note.getTitle());
+                            n1.setContent(note.getContent());
+
+                            noteRepository.save(n1);
+                            setResponse(HttpStatus.NO_CONTENT,response);
+                            return null;
+
+
+
+                        } else {
+
+                            msg.append("You are not Authorized to use this note");
+                            setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                            return n1;
+                        }
+                    }
+
+                }
+            }
+            else{
+                msg.append("You are not Authorized to use this note");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
+
+
+        }
+        // j.setMsg("User is not logged in!");
+        msg.append("You are not Authorized to use this note");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
+
+
+
+    @DeleteMapping  (path="/note/{id}")
+    public @ResponseBody Object deleteNote(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        //JEntity j = new JEntity();
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note n=null;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                JEntity j =new JEntity();
+
+
+                User u = userRepository.findByEmail(email);
+
+
+                if (u == null) {
+
+                    msg.append("Email is Invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    return n;
+
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, u.getpwd())) {
+                        msg.append("Password is Invalid");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return n;
+
+                    }
+                    Note n1 = noteRepository.findById(id);
+                    System.out.println("n1:"+n1);
+                    if (n1 == null)
+                    {
+
+
+                        msg.append("Note not found");
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        return n1;
+
+                    }
+                    else {
+
+                        if (n1.getUser().getId() == u.getId()) {
+
+                            Instant ins = Instant.now();
+
+                            n1.setUpdated_on(ins.toString());
+
+                            noteRepository.delete(n1);
+                            setResponse(HttpStatus.NO_CONTENT, response);
+                            return null;
+                        }
+                    }
+                }
+            }
+            else{
+                msg.append("You are not Authorized to use this note");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return n;
+            }
+
+
+        }
+        // j.setMsg("User is not logged in!");
+        msg.append("You are not Authorized to use this note");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return n;
+    }
 
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
@@ -183,5 +589,7 @@ public class MainController {
         Matcher matcher = VALID_PWD_REGEX.matcher(pwdStr);
         return matcher.find();
     }
+
+
 
 }
