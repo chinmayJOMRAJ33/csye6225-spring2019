@@ -490,25 +490,35 @@ public class MainController {
 
                                     String fileName = attachment.getUrl();
                                     amazonClient.deleteFileFromS3Bucket(bucketName,fileName);
-                                    msg.append("Deleted Successfully from local file system");
+                                    msg.append("Deleted Successfully from S3");
                                     setResponse(HttpStatus.OK,response,msg);
                                     return attachment;
                                 } else {
+
 
                                     //a = createAttachment(file, note);
                                     if (note.getUser().getId() == user1.getId()) {
 
                                         Instant ins = Instant.now();
+                                        if (!(attachmentRepository.findById(idAttachments).getNote() == note)){
+                                            msg.append("This attachment is not entitled to the given note");
+                                            setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                            return attachmentRepository.findById(idAttachments);
 
-                                        note.setUpdated_on(ins.toString());
-                                        attachmentRepository.delete(attachment);
-                                        File destFile = new File(attachment.getUrl());
-                                        if(destFile.exists()){
-                                            destFile.delete();
+
+
                                         }
-                                        msg.append("Deleted Successfully from S3");
-                                        setResponse(HttpStatus.OK, response, msg);
-                                        return attachment;
+                                        else {
+                                            note.setUpdated_on(ins.toString());
+                                            attachmentRepository.delete(attachment);
+                                            File destFile = new File(attachment.getUrl());
+                                            if (destFile.exists()) {
+                                                destFile.delete();
+                                            }
+                                            msg.append("Deleted Successfully from local file system");
+                                            setResponse(HttpStatus.OK, response, msg);
+                                            return attachment;
+                                        }
                                     }
                                 }
 
@@ -542,7 +552,7 @@ public class MainController {
 
 
     public Attachment editFile(MultipartFile file,String noteId,String attachmentId,HttpServletRequest httpServletRequest, HttpServletResponse response){
-        String profileName="default";
+//        String profileName="default";
         String auth = httpServletRequest.getHeader("Authorization");
         StringBuffer msg = new StringBuffer();
         Note note = null;
@@ -588,18 +598,30 @@ public class MainController {
                         setResponse(HttpStatus.UNAUTHORIZED, response, msg);
                         return a;
                     }
+
                     else {
                         if(profileName.equalsIgnoreCase("dev")){
 
                             String bucketName = env.getProperty("bucketname");
                             Attachment a2 = attachmentRepository.findById(attachmentId);
 
-                            String fileName = a2.getUrl();
-                            amazonClient.deleteFileFromS3Bucket(bucketName,fileName);
-                            msg.append("Deleted Successfully from local file system");
-                            setResponse(HttpStatus.OK,response,msg);
-                            uploadToAWS(file);
-                            return a2;
+                               if (!(a2.getNote() == note)){
+                                msg.append("This attachment is not entitled to the given note");
+                                setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                return attachmentRepository.findById(attachmentId);
+
+
+
+                            }
+                               else {
+
+                                   String fileName = a2.getUrl();
+                                   amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
+                                   msg.append("Deleted Successfully from local file system");
+                                   setResponse(HttpStatus.OK, response, msg);
+                                   uploadToAWS(file);
+                                   return a2;
+                               }
 
                         }
                         else
@@ -612,7 +634,24 @@ public class MainController {
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
                                 return a1;
 
+
+
                             }
+//                            else if (!((attachmentRepository.findById(attachmentId).getNote() == note))) {
+//                                msg.append("This attachment is not entitled to the given note");
+//                                setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+//                                return attachmentRepository.findById(attachmentId);
+//
+//                            }
+                            else if (!(a1.getNote() == note)){
+                                msg.append("This attachment is not entitled to the given note");
+                                setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                return attachmentRepository.findById(attachmentId);
+
+
+
+                            }
+
 
                             else {
                                 //attachmentRepository.delete(a1);
