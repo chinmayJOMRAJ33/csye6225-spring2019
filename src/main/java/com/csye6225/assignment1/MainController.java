@@ -251,7 +251,15 @@ public class MainController {
                         return attachments;
                     }
                     else {
-                        return attachments;
+                        attachments = note.getAttachments();
+                        if(attachments == null) {
+                            msg.append("No attachments for this note");
+                            setResponse(HttpStatus.NOT_FOUND,response,msg);
+                            return attachments;
+                        } else {
+                            setResponse(HttpStatus.OK,response);
+                            return attachments;
+                        }
                     }
                 }
             }
