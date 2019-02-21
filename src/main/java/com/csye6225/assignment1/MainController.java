@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Controller
+
 @RequestMapping(path="/")
 public class MainController {
     @Autowired
