@@ -7,11 +7,18 @@ import org.springframework.web.bind.annotation.*;
 //import at.favre.lib.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.*;
 import org.apache.tomcat.util.codec.binary.Base64;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.env.Environment;
 import javax.persistence.Convert;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -27,6 +34,15 @@ public class MainController {
     private UserRepository userRepository;
     @Autowired
     private NoteRepository noteRepository;
+
+    @Autowired
+    private AttachRepository attachmentRepository;
+
+    @Autowired
+    private AmazonClient amazonClient;
+
+    @Autowired
+    private Environment env;
 
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX =
             Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
@@ -181,9 +197,143 @@ public class MainController {
     public @ResponseBody Set<Note> getAllNotes(HttpServletRequest httpServletRequest,HttpServletResponse response){
         return fetchAllNotes(httpServletRequest,response);
     }
+    @PostMapping("/note/{idNotes}/attachments")
+    public @ResponseBody Attachment createFile(@RequestPart(value = "file") MultipartFile file, @PathVariable("idNotes")String noteId, HttpServletRequest httpServletRequest, HttpServletResponse response){
+        return saveFile(file,noteId,httpServletRequest,response);
+    }
+
+    public Attachment saveFile(MultipartFile file,String noteId,HttpServletRequest httpServletRequest, HttpServletResponse response){
+        String profileName="default";
+        String auth = httpServletRequest.getHeader("Authorization");
+        StringBuffer msg = new StringBuffer();
+        Note note = null;
+
+        Attachment a = null;
+
+        String mimeType = file.getContentType();
+        String type = mimeType.split("/")[0];
+        if (!type.equalsIgnoreCase("image")) {
+            msg.append("Only Images allowed");
+            setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+            return a;
+        }
 
 
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials != null && Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                // request.
+                User user = userRepository.findByEmail(email);
 
+                if (user == null) {
+
+                    msg.append("Email is invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                    return a;
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, user.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                        return a;
+                    }
+                    note = noteRepository.findById(noteId);
+
+                    if (note == null) {
+                        msg.append("No such Note available");
+                        setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                        return a;
+                    }
+                    else {
+                        if(profileName.equalsIgnoreCase("dev")){
+                            uploadToAWS(file);
+                        }
+                        else
+                        {
+
+                            a=createAttachment(file,note);
+                            attachmentRepository.save(a);
+                        }
+                        return a;
+                    }
+                }
+            } else{
+
+                msg.append("User is not logged in");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return a;
+            }
+
+        }
+        msg.append("User is not logged in");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return a;
+    }
+
+    public String uploadToAWS(MultipartFile multipartFile) {
+
+        String fileUrl = "";
+        try {
+
+
+            File file = convertMultiPartFileToFile(multipartFile);
+            String fileName = multipartFile .getOriginalFilename();
+            String endpointUrl=env.getProperty("endpointurl");
+            String bucketName=env.getProperty("bucketname");
+            fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
+            amazonClient.uploadFileTos3bucket(bucketName,fileName, file);
+
+            // file.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return fileUrl;
+    }
+
+    public File convertMultiPartFileToFile(MultipartFile file) throws IOException {
+        File convFile = new File(file.getOriginalFilename());
+        FileOutputStream fos = new FileOutputStream(convFile);
+        fos.write(file.getBytes());
+        fos.close();
+        return convFile;
+    }
+
+    public Attachment createAttachment(MultipartFile file,Note n){
+        // Note n=new Note();
+        String url=uploadToFileSystem(file);
+
+        Attachment a=new Attachment();
+
+        // String p=env.getProperty("uploadpath");
+        //  String fileName = fileStorageService.storeFile(file,p);
+
+        a.setUrl(url);
+        a.setNote(n);
+        return a;
+    }
+
+    public String uploadToFileSystem(MultipartFile file){
+        // System.out.println(profilename);
+
+        Path path=null;
+        try {
+            // Get the file and save it somewhere
+            byte[] bytes = file.getBytes();
+            path = Paths.get(env.getProperty("uploadpath") + file.getOriginalFilename());
+            Files.write(path, bytes);
+            return path.toString();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return path.toString();
+    }
 
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
         String auth=httpServletRequest.getHeader("Authorization");

@@ -22,11 +22,11 @@ public class AmazonClient {
 
     private AmazonS3 s3client;
 
-    @Value("${amazonProperties.endpointUrl}")
-    private String endpointUrl;
-
-    @Value("${aws.s3.bucket}")
-    private String bucketName;
+//    @Value("${amazonProperties.endpointUrl}")
+//    private String endpointUrl;
+//
+//    @Value("${aws.s3.bucket}")
+//    private String bucketName;
 
 
 //    @Value("${profile.name}")
@@ -45,37 +45,18 @@ public class AmazonClient {
         s3client = AmazonS3ClientBuilder.defaultClient();
     }
 
-    private File convertMultiPartToFile(MultipartFile file) throws IOException {
-        File convFile = new File(file.getOriginalFilename());
-        FileOutputStream fos = new FileOutputStream(convFile);
-        fos.write(file.getBytes());
-        fos.close();
-        return convFile;
-    }
 
-    private void uploadFileTos3bucket(String fileName, File file) {
-        s3client.putObject(new PutObjectRequest(bucketName, fileName, file)
+
+    public void uploadFileTos3bucket(String bn,String fileName, File file) {
+        s3client.putObject(new PutObjectRequest(bn, fileName, file)
                 .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl));
     }
 
-    public String uploadFile(MultipartFile multipartFile) {
 
-        String fileUrl = "";
-        try {
-            File file = convertMultiPartToFile(multipartFile);
-            String fileName = multipartFile .getOriginalFilename();
-            fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
-            uploadFileTos3bucket(fileName, file);
-            file.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return fileUrl;
-    }
 
     public String deleteFileFromS3Bucket(String fileUrl) {
         String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
-        s3client.deleteObject(new DeleteObjectRequest(bucketName, fileName));
+        s3client.deleteObject(new DeleteObjectRequest("bucketName", fileName));
         return "Successfully deleted";
     }
 }
