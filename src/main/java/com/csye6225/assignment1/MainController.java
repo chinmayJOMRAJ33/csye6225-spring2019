@@ -1,6 +1,7 @@
 package com.csye6225.assignment1;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +44,9 @@ public class MainController {
 
     @Autowired
     private Environment env;
+
+    @Value("${profile.name}")
+    private String profileName;
 
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX =
             Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
@@ -203,7 +207,7 @@ public class MainController {
     }
 
     public Attachment saveFile(MultipartFile file,String noteId,HttpServletRequest httpServletRequest, HttpServletResponse response){
-        String profileName="default";
+        System.out.println("Active profileName:" + profileName);
         String auth = httpServletRequest.getHeader("Authorization");
         StringBuffer msg = new StringBuffer();
         Note note = null;
