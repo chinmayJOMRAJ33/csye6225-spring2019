@@ -248,14 +248,14 @@ public class MainController {
 
                     if (note == null){
                         msg.append("Note not found");
-                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
                         return attachments;
                     }
                     else {
                         attachments = note.getAttachments();
                         if(attachments == null) {
                             msg.append("No attachments for this note");
-                            setResponse(HttpStatus.NOT_FOUND,response,msg);
+                            setResponse(HttpStatus.UNAUTHORIZED,response,msg);
                             return attachments;
                         } else {
                             setResponse(HttpStatus.OK,response);
@@ -517,8 +517,8 @@ public class MainController {
                                                 destFile.delete();
                                             }
                                             msg.append("Deleted Successfully from local file system");
-                                            setResponse(HttpStatus.OK, response, msg);
-                                            return attachment;
+                                            setResponse(HttpStatus.NO_CONTENT, response, msg);
+                                            return null;
                                         }
                                     }
                                 }
@@ -619,9 +619,9 @@ public class MainController {
                                    String fileName = a2.getUrl();
                                    amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
                                    msg.append("Deleted Successfully from local file system");
-                                   setResponse(HttpStatus.OK, response, msg);
+                                   setResponse(HttpStatus.NO_CONTENT, response, msg);
                                    uploadToAWS(file);
-                                   return a2;
+                                   return null;
                                }
 
                         }
