@@ -531,6 +531,122 @@ public class MainController {
         return attachment;
     }
 
+
+    @PutMapping("/note/{idNotes}/attachments/{idAttachments}")
+    public @ResponseBody Attachment updateFile(@RequestPart(value = "file") MultipartFile file, @PathVariable("idNotes")String noteId,@PathVariable("idAttachments")String attachmentId, HttpServletRequest httpServletRequest, HttpServletResponse response){
+        return editFile(file,noteId,attachmentId,httpServletRequest,response);
+    }
+
+
+
+
+
+    public Attachment editFile(MultipartFile file,String noteId,String attachmentId,HttpServletRequest httpServletRequest, HttpServletResponse response){
+        String profileName="default";
+        String auth = httpServletRequest.getHeader("Authorization");
+        StringBuffer msg = new StringBuffer();
+        Note note = null;
+
+        Attachment a = null;
+
+        String mimeType = file.getContentType();
+        String type = mimeType.split("/")[0];
+        if (!type.equalsIgnoreCase("image")) {
+            msg.append("Only Images allowed");
+            setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+            return a;
+        }
+
+
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials != null && Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                // request.
+                User user = userRepository.findByEmail(email);
+
+                if (user == null) {
+
+                    msg.append("Email is invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                    return a;
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, user.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                        return a;
+                    }
+                    note = noteRepository.findById(noteId);
+
+                    if (note == null) {
+                        msg.append("No such Note available");
+                        setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                        return a;
+                    }
+                    else {
+                        if(profileName.equalsIgnoreCase("dev")){
+
+                            String bucketName = env.getProperty("bucketname");
+                            Attachment a2 = attachmentRepository.findById(attachmentId);
+
+                            String fileName = a2.getUrl();
+                            amazonClient.deleteFileFromS3Bucket(bucketName,fileName);
+                            msg.append("Deleted Successfully from local file system");
+                            setResponse(HttpStatus.OK,response,msg);
+                            uploadToAWS(file);
+                            return a2;
+
+                        }
+                        else
+                        {
+                            Attachment a1 = attachmentRepository.findById(attachmentId);
+
+                            if (a1 == null)
+                            {
+                                msg.append("No such attachment available");
+                                setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                return a1;
+
+                            }
+
+                            else {
+                                //attachmentRepository.delete(a1);
+                                File destFile = new File(a1.getUrl());
+                                if(destFile.exists()){
+                                    destFile.delete();
+                                }
+                                String url=uploadToFileSystem(file);
+                                a1.setUrl(url);
+
+
+                                // a = createAttachment(file, note);
+                                //   attachmentRepository.save(a1);
+                                return a1;
+                            }
+                        }
+
+                    }
+                }
+            } else{
+
+                msg.append("User is not logged in");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return a;
+            }
+
+        }
+        msg.append("User is not logged in");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return a;
+    }
+
+
+
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
