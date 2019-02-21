@@ -487,6 +487,16 @@ public class MainController {
                             else {
                                 if (profileName.equalsIgnoreCase("dev")) {
                                     //deleteFromAWS(file);
+
+                                    if (!(attachmentRepository.findById(idAttachments).getNote() == note)){
+                                        msg.append("This attachment is not entitled to the given note");
+                                        setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                        return attachmentRepository.findById(idAttachments);
+
+
+
+                                    }
+                                    else{
                                     String bucketName = env.getProperty("bucketname");
 
                                     String fileName = attachment.getUrl();
@@ -494,6 +504,7 @@ public class MainController {
                                     msg.append("Deleted Successfully from S3");
                                     setResponse(HttpStatus.OK,response,msg);
                                     return attachment;
+                                    }
                                 } else {
 
 
@@ -662,11 +673,12 @@ public class MainController {
                                 }
                                 String url=uploadToFileSystem(file);
                                 a1.setUrl(url);
-
+                              //  setResponse(resp);
+                                setResponse(HttpStatus.NO_CONTENT, response, msg);
 
                                 // a = createAttachment(file, note);
                                 //   attachmentRepository.save(a1);
-                                return a1;
+                                return null;
                             }
                         }
 
