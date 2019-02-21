@@ -201,9 +201,20 @@ public class MainController {
     public @ResponseBody Set<Note> getAllNotes(HttpServletRequest httpServletRequest,HttpServletResponse response){
         return fetchAllNotes(httpServletRequest,response);
     }
+
+    @GetMapping(path="/note/{idNotes}/attachments")
+    public @ResponseBody Set<Attachment> getAttachmentsWithNoteId(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return getAttachmentswithNoteIdData(id,httpServletRequest,response);
+    }
+
     @PostMapping("/note/{idNotes}/attachments")
     public @ResponseBody Attachment createFile(@RequestPart(value = "file") MultipartFile file, @PathVariable("idNotes")String noteId, HttpServletRequest httpServletRequest, HttpServletResponse response){
         return saveFile(file,noteId,httpServletRequest,response);
+    }
+
+    private Set<Attachment> getAttachmentswithNoteIdData(String noteId, HttpServletRequest httpServletRequest, HttpServletResponse response) {
+        Set<Attachment> attachments = null;
+        return attachments;
     }
 
     public Attachment saveFile(MultipartFile file,String noteId,HttpServletRequest httpServletRequest, HttpServletResponse response){
@@ -551,7 +562,6 @@ public class MainController {
         catch(Exception e){
 
         }
-
 
     }
     public Note getNoteWithIdData(String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
