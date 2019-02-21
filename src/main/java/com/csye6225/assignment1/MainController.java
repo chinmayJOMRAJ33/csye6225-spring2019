@@ -342,6 +342,123 @@ public class MainController {
         return path.toString();
     }
 
+    @DeleteMapping  (path="/note/{id}/attachments/{idAttachments}")
+    public @ResponseBody Object deleteAttachment(@PathVariable("id") String id,@PathVariable("idAttachments") String idAttachments,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return deleteAttachmentWithNoteId(id, idAttachments, httpServletRequest, response);
+
+    }
+
+    private Object deleteAttachmentWithNoteId(String noteId, String idAttachments, HttpServletRequest httpServletRequest, HttpServletResponse response) {
+
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note note = null;
+        //Set<Attachment> attachments = null;
+        Attachment attachment = null;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+
+
+                User user1 = userRepository.findByEmail(email);
+
+                if (user1 == null) {
+
+                    msg.append("Email is Invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    return attachment;
+
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, user1.getpwd())) {
+                        msg.append("Password is Invalid");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return attachment;
+
+                    }
+                    note = noteRepository.findById(noteId);
+                    if (note == null)
+                    {
+
+
+                        msg.append("Note not found");
+                        setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        return attachment;
+
+                    }
+                    else {
+
+                        if (idAttachments == null)
+                        {
+                            msg.append("attachment not found");
+                            setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                            return attachment;
+                        }
+                        else
+                        {
+                            attachment=attachmentRepository.findById(idAttachments);
+                            if(attachment == null)
+                            {
+
+
+                                msg.append("Note not found");
+                                setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                                return attachment;
+
+                            }
+                            else {
+                                if (profileName.equalsIgnoreCase("dev")) {
+                                    //deleteFromAWS(file);
+                                    String bucketName = env.getProperty("bucketname");
+
+                                    String fileName = attachment.getUrl();
+                                    amazonClient.deleteFileFromS3Bucket(bucketName,fileName);
+                                    msg.append("Deleted Successfully from local file system");
+                                    setResponse(HttpStatus.OK,response,msg);
+                                    return attachment;
+                                } else {
+
+                                    //a = createAttachment(file, note);
+                                    if (note.getUser().getId() == user1.getId()) {
+
+                                        Instant ins = Instant.now();
+
+                                        note.setUpdated_on(ins.toString());
+                                        attachmentRepository.delete(attachment);
+                                        File destFile = new File(attachment.getUrl());
+                                        if(destFile.exists()){
+                                            destFile.delete();
+                                        }
+                                        msg.append("Deleted Successfully from S3");
+                                        setResponse(HttpStatus.OK, response, msg);
+                                        return attachment;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+            else{
+                msg.append("You are not Authorized to use this note");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return attachment;
+            }
+
+
+        }
+        // j.setMsg("User is not logged in!");
+        msg.append("You are not Authorized to use this note");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return attachment;
+    }
+
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
