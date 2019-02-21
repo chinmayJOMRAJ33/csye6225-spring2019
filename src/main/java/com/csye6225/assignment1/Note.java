@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class Note {
@@ -74,6 +75,17 @@ public class Note {
     private String created_on;
     private String updated_on;
     //private UUID uuid;
+
+    @OneToMany(mappedBy = "note")
+    private Set<Attachment> attachments;
+
+    public Set<Attachment> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(Set<Attachment> listOfAttachments) {
+        this.attachments = listOfAttachments;
+    }
 
 
 
