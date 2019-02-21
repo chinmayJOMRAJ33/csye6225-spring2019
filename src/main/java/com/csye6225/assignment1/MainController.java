@@ -201,9 +201,81 @@ public class MainController {
     public @ResponseBody Set<Note> getAllNotes(HttpServletRequest httpServletRequest,HttpServletResponse response){
         return fetchAllNotes(httpServletRequest,response);
     }
+
+    @GetMapping(path="/note/{idNotes}/attachments")
+    public @ResponseBody Set<Attachment> getAttachmentsWithNoteId(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        return getAttachmentswithNoteIdData(id,httpServletRequest,response);
+    }
+
     @PostMapping("/note/{idNotes}/attachments")
     public @ResponseBody Attachment createFile(@RequestPart(value = "file") MultipartFile file, @PathVariable("idNotes")String noteId, HttpServletRequest httpServletRequest, HttpServletResponse response){
         return saveFile(file,noteId,httpServletRequest,response);
+    }
+
+    private Set<Attachment> getAttachmentswithNoteIdData(String noteId, HttpServletRequest httpServletRequest, HttpServletResponse response) {
+        String auth=httpServletRequest.getHeader("Authorization");
+        StringBuffer msg=new StringBuffer();
+        Note note = null;
+        Set<Attachment> attachments = null;
+        int userid;
+        if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
+            String base64Credentials = auth.substring("Basic".length()).trim();
+            if (!base64Credentials.isEmpty() && base64Credentials!=null &&Base64.isBase64(base64Credentials)) {
+                byte[] credDecoded = Base64.decodeBase64(base64Credentials);
+                String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+                String[] values = credentials.split(":", 2);
+                String email = values[0];
+                String pwd = values[1];
+                // request.
+                User user1 = userRepository.findByEmail(email);
+
+
+                if (user1 == null) {
+
+                    msg.append("Email is invalid");
+                    setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    return attachments;
+
+                } else {
+                    if (!BCrypt.checkpw(pwd, user1.getpwd())) {
+                        msg.append("Password is incorrect");
+                        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        return attachments;
+                    }
+                    note = noteRepository.findById(noteId);
+
+
+                    if (note == null){
+                        msg.append("Note not found");
+                        setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        return attachments;
+                    }
+                    else {
+                        attachments = note.getAttachments();
+                        if(attachments == null) {
+                            msg.append("No attachments for this note");
+                            setResponse(HttpStatus.NOT_FOUND,response,msg);
+                            return attachments;
+                        } else {
+                            setResponse(HttpStatus.OK,response);
+                            return attachments;
+                        }
+                    }
+                }
+            }
+            else{
+
+                msg.append("User is not logged in");
+                setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                return attachments;
+            }
+
+
+        }
+        msg.append("User is not logged in");
+        setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        return attachments;
+
     }
 
     public Attachment saveFile(MultipartFile file,String noteId,HttpServletRequest httpServletRequest, HttpServletResponse response){
@@ -551,7 +623,6 @@ public class MainController {
         catch(Exception e){
 
         }
-
 
     }
     public Note getNoteWithIdData(String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
