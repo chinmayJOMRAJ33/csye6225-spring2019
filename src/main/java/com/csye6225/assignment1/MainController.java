@@ -203,7 +203,7 @@ public class MainController {
     }
 
     @GetMapping(path="/note/{idNotes}/attachments")
-    public @ResponseBody Set<Attachment> getAttachmentsWithNoteId(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+    public @ResponseBody Set<Attachment> getAttachmentsWithNoteId(@PathVariable("idNotes") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
         return getAttachmentswithNoteIdData(id,httpServletRequest,response);
     }
 
