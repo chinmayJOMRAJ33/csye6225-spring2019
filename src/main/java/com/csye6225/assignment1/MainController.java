@@ -280,20 +280,24 @@ public class MainController {
     }
 
     public Attachment saveFile(MultipartFile file,String noteId,HttpServletRequest httpServletRequest, HttpServletResponse response){
-
         String auth = httpServletRequest.getHeader("Authorization");
         StringBuffer msg = new StringBuffer();
         Note note = null;
-
         Attachment a = null;
+        long perSize=100000000;
 
-        String mimeType = file.getContentType();
-        String type = mimeType.split("/")[0];
-        if (!type.equalsIgnoreCase("image")) {
-            msg.append("Only Images allowed");
+
+        if(file.isEmpty()){
+            msg.append("Please select a file");
             setResponse(HttpStatus.UNAUTHORIZED, response, msg);
             return a;
         }
+        if(file.getSize()>perSize){
+            msg.append("File size is larger than 100 mb");
+            setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+            return a;
+        }
+
 
 
         if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
@@ -328,17 +332,23 @@ public class MainController {
                     }
                     else {
                         String url=null;
+                        a=createAttachment(note);
+                        attachmentRepository.save(a);
+
+                        String aid=a.getId();
+                        String id=getIdentifier(aid);
                         if(profileName.equalsIgnoreCase("dev")){
-                            url=uploadToAWS(file);
+                            url=uploadToAWS(file,id);
 
                         }
                         else
                         {
-                            url=uploadToFileSystem(file);
+                            url=uploadToFileSystem(file,id);
 
                         }
-                        a=createAttachment(file,note,url);
+                        a.setUrl(url);
                         attachmentRepository.save(a);
+
                         return a;
                     }
                 }
@@ -355,14 +365,15 @@ public class MainController {
         return a;
     }
 
-    public String uploadToAWS(MultipartFile multipartFile) {
+    public String uploadToAWS(MultipartFile multipartFile,String aid) {
 
         String fileUrl = "";
         try {
 
 
             File file = convertMultiPartFileToFile(multipartFile);
-            String fileName = multipartFile .getOriginalFilename();
+          //  String fileName = multipartFile .getOriginalFilename();
+            String fileName = aid + "_" + multipartFile .getOriginalFilename();
             String endpointUrl=env.getProperty("endpointurl");
             String bucketName=env.getProperty("bucketname");
             fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
@@ -376,35 +387,26 @@ public class MainController {
     }
 
     public File convertMultiPartFileToFile(MultipartFile file) throws IOException {
-        File convFile = new File(file.getOriginalFilename());
-        FileOutputStream fos = new FileOutputStream(convFile);
-        fos.write(file.getBytes());
-        fos.close();
+        File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
+        file.transferTo(convFile);
         return convFile;
     }
 
-    public Attachment createAttachment(MultipartFile file,Note n,String url){
-        // Note n=new Note();
-       // String url=uploadToFileSystem(file);
-
+    public Attachment createAttachment(Note n){
         Attachment a=new Attachment();
-
-        // String p=env.getProperty("uploadpath");
-        //  String fileName = fileStorageService.storeFile(file,p);
-
-        a.setUrl(url);
         a.setNote(n);
         return a;
     }
 
-    public String uploadToFileSystem(MultipartFile file){
+    public String uploadToFileSystem(MultipartFile file,String aid){
         // System.out.println(profilename);
 
         Path path=null;
         try {
             // Get the file and save it somewhere
             byte[] bytes = file.getBytes();
-            path = Paths.get(env.getProperty("uploadpath") + file.getOriginalFilename());
+            String filestoreName=aid + '_' + file.getOriginalFilename();
+            path = Paths.get(env.getProperty("uploadpath") + filestoreName);
             Files.write(path, bytes);
             return path.toString();
 
@@ -413,6 +415,14 @@ public class MainController {
         }
 
         return path.toString();
+    }
+    public String getIdentifier(String aid){
+        String[] data;
+        Pattern pattern = Pattern.compile("-");
+        data = pattern.split(aid);
+        System.out.println(Arrays.toString(data));
+        String id=data[4].substring(5);
+        return id;
     }
 
     @DeleteMapping  (path="/note/{id}/attachments/{idAttachments}")
@@ -612,7 +622,7 @@ public class MainController {
                                    amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
                                    msg.append("Deleted Successfully from local file system");
                                    setResponse(HttpStatus.NO_CONTENT, response, msg);
-                                   uploadToAWS(file);
+                                   uploadToAWS(file,"attachment_ID");
                                    return null;
                                }
 
@@ -652,7 +662,7 @@ public class MainController {
                                 if(destFile.exists()){
                                     destFile.delete();
                                 }
-                                String url=uploadToFileSystem(file);
+                                String url=uploadToFileSystem(file,"attachment_ID");
                                 a1.setUrl(url);
                               //  setResponse(resp);
                                 setResponse(HttpStatus.NO_CONTENT, response, msg);
