@@ -61,18 +61,24 @@
 					"IpProtocol" : "tcp",
 					"FromPort" : "22",
 					"ToPort" : "22",
-				"CidrIp" : "0.0.0.0/0" },
+					"CidrIp" : "0.0.0.0/0" },
 				{
 					"IpProtocol" : "tcp",
 					"FromPort" : "80",
 					"ToPort" : "80",
-				"CidrIp" : "0.0.0.0/0" },
+					"CidrIp" : "0.0.0.0/0" },
 				{
 					"IpProtocol" : "tcp",
 					"FromPort" : "443",
 					"ToPort" : "443",
 					"CidrIp" : "0.0.0.0/0"
-				} ]
+				},
+				{
+					"IpProtocol" : "tcp",
+					"FromPort" : "3306",
+					"ToPort" : "3306",
+					"CidrIp" : "0.0.0.0/0"
+				}]
 			}
 		},
 		"AWSdynamotable": {
@@ -100,20 +106,22 @@
 			}
 		},
 		
-		"DBEC2SecurityGroup": {
-			"Type": "AWS::EC2::SecurityGroup",
-			"Properties" : {
-				"VpcId" : {"Ref":"VpcId"},
-				"GroupDescription": "Open database for access",
-				"SecurityGroupIngress" : [{
-				"IpProtocol" : "tcp",
-				"FromPort" : "3306",
-				"ToPort" : "3306",
-				"CidrIp" : "0.0.0.0/0"
+
+	"DBSecurityGroup": {
+   		"Type": "AWS::RDS::DBSecurityGroup",
+   		"Properties": {
+      			"EC2VpcId" : { "Ref" : "VpcId" },
+      			"DBSecurityGroupIngress": [
+         			{"EC2SecurityGroupId": {
+              				"Fn::GetAtt": [
+                			"WebServerSecurityGroup","GroupId"
+              				]
 				}
-			]
-			}
-		},
+          		}
+      			],
+      			"GroupDescription": "DB SecurityGroup"
+   		}
+	},
 
 		"dbSubnetGroup":{
 			"Type" : "AWS::RDS::DBSubnetGroup",
@@ -123,7 +131,7 @@
 				"SubnetIds" : [{"Ref":"SubnetId2"},{"Ref":"SubnetId3"}]
 			  
 			 }
-		 }     ,
+		 },
 		"MyRDSDB" : {
             "Type" : "AWS::RDS::DBInstance",
             "Properties" : {
@@ -134,12 +142,12 @@
                 "MasterUsername" : "csye6225master",
                 "MasterUserPassword" : "csye6225password",
                 "Engine" : "MySQL",
-				"DBName" : "csye6225",
-				"DBSubnetGroupName":{
-					"Ref":"dbSubnetGroup"
-				 },
-				 "PubliclyAccessible":true,
-				 "VPCSecurityGroups" : [{ "Fn::GetAtt": [ "DBEC2SecurityGroup", "GroupId" ]}]
+		"DBName" : "csye6225",
+		"DBSubnetGroupName":{
+			"Ref":"dbSubnetGroup"
+		},
+		"PubliclyAccessible":true,
+		"DBSecurityGroups" : [ { "Ref" : "DBSecurityGroup"}]
 				}
 			}
 
