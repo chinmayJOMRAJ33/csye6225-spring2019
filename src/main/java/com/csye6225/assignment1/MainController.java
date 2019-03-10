@@ -1,5 +1,6 @@
 package com.csye6225.assignment1;
 
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,8 @@ public class MainController {
 
     @Value("${profile.name}")
     private String profileName;
+
+    public String name="dev";
 
     public static final Pattern VALID_EMAIL_ADDRESS_REGEX =
             Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
@@ -252,6 +255,11 @@ public class MainController {
                         return attachments;
                     }
                     else {
+                        if(note.getUser().getId()!=user1.getId()){
+                            msg.append("User does not have access to this note");
+                            setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                            return attachments;
+                        }
                         attachments = note.getAttachments();
                         if(attachments == null) {
                             msg.append("No attachments for this note");
@@ -337,7 +345,7 @@ public class MainController {
 
                         String aid=a.getId();
                         String id=getIdentifier(aid);
-                        if(profileName.equalsIgnoreCase("dev")){
+                        if(profileName.equalsIgnoreCase(name)){
                             url=uploadToAWS(file,id);
 
                         }
@@ -346,6 +354,7 @@ public class MainController {
                             url=uploadToFileSystem(file,id);
 
                         }
+                        System.out.println(url);
                         a.setUrl(url);
                         attachmentRepository.save(a);
 
@@ -502,12 +511,31 @@ public class MainController {
 
                                 }
                                 else{
-                                    if (profileName.equalsIgnoreCase("dev")) {
-
+                                    if (profileName.equalsIgnoreCase(name)) {
                                         String bucketName = env.getProperty("bucketname");
+
+//                                        String bucketName = env.getProperty("bucketname");
+//                                        String fileName = attachment.getUrl();
+//                                        amazonClient.deleteFileFromS3Bucket(bucketName,fileName);
+//                                        attachmentRepository.delete(attachment);
+
+
+
                                         String fileName = attachment.getUrl();
-                                        amazonClient.deleteFileFromS3Bucket(bucketName,fileName);
+                                        String aid=attachment.getId();
+                                        String id=getIdentifier(aid);
+                                        // amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
+                                        String fo = fileName.substring(fileName.lastIndexOf("/") + 1);
+                                        System.out.println(fo);
+                                        amazonClient.deleteFileFromS3Bucket(bucketName, fo);
                                         attachmentRepository.delete(attachment);
+                                        //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
+                                        //  msg.append("Deleted Successfully from local file system");
+                                        setResponse(HttpStatus.NO_CONTENT, response, msg);
+
+                                        //uploadToAWS(file,id);
+                                        return null;
+
 
 
                                     } else {
@@ -545,6 +573,24 @@ public class MainController {
     }
 
 
+    public String uploadToFileSystem(MultipartFile file){
+        // System.out.println(profilename);
+
+        Path path=null;
+        try {
+            // Get the file and save it somewhere
+            byte[] bytes = file.getBytes();
+            path = Paths.get(env.getProperty("uploadpath") + file.getOriginalFilename());
+            Files.write(path, bytes);
+            return path.toString();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return path.toString();
+    }
+
     @PutMapping("/note/{idNotes}/attachments/{idAttachments}")
     public @ResponseBody Attachment updateFile(@RequestPart(value = "file") MultipartFile file, @PathVariable("idNotes")String noteId,@PathVariable("idAttachments")String attachmentId, HttpServletRequest httpServletRequest, HttpServletResponse response){
         return editFile(file,noteId,attachmentId,httpServletRequest,response);
@@ -562,10 +608,16 @@ public class MainController {
 
         Attachment a = null;
 
-        String mimeType = file.getContentType();
-        String type = mimeType.split("/")[0];
-        if (!type.equalsIgnoreCase("image")) {
-            msg.append("Only Images allowed");
+        long perSize=100000000;
+
+
+        if(file.isEmpty()){
+            msg.append("Please select a file");
+            setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+            return a;
+        }
+        if(file.getSize()>perSize){
+            msg.append("File size is larger than 100 mb");
             setResponse(HttpStatus.UNAUTHORIZED, response, msg);
             return a;
         }
@@ -603,12 +655,13 @@ public class MainController {
                     }
 
                     else {
-                        if(profileName.equalsIgnoreCase("dev")){
+                        if(profileName.equalsIgnoreCase(name)){
 
                             String bucketName = env.getProperty("bucketname");
                             Attachment a2 = attachmentRepository.findById(attachmentId);
 
-                               if (!(a2.getNote() == note)){
+                               if (!(a2.getNote().getId() == note.getId()) || !(note.getUser().getId() == user.getId())){
+                         //   !(attachmentRepository.findById(idAttachments).getNote() == note)|| !(note.getUser().getId() == user1.getId())
                                 msg.append("This attachment is not entitled to the given note");
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
                                 return attachmentRepository.findById(attachmentId);
@@ -619,10 +672,16 @@ public class MainController {
                                else {
 
                                    String fileName = a2.getUrl();
-                                   amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
-                                   msg.append("Deleted Successfully from local file system");
+                                   String aid=a2.getId();
+                                   String id=getIdentifier(aid);
+                                  // amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
+                                   String fo = fileName.substring(fileName.lastIndexOf("/") + 1);
+                                   System.out.println(fo);
+                                   amazonClient.deleteFileFromS3Bucket(bucketName, fo);
+                                 //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
+                                 //  msg.append("Deleted Successfully from local file system");
                                    setResponse(HttpStatus.NO_CONTENT, response, msg);
-                                   uploadToAWS(file,"attachment_ID");
+                                   uploadToAWS(file,id);
                                    return null;
                                }
 
@@ -646,7 +705,7 @@ public class MainController {
 //                                return attachmentRepository.findById(attachmentId);
 //
 //                            }
-                            else if (!(a1.getNote() == note)){
+                            else if (!(a1.getNote().getId() == note.getId())||!(note.getUser().getId() == user.getId())){
                                 msg.append("This attachment is not entitled to the given note");
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
                                 return attachmentRepository.findById(attachmentId);
@@ -662,8 +721,16 @@ public class MainController {
                                 if(destFile.exists()){
                                     destFile.delete();
                                 }
-                                String url=uploadToFileSystem(file,"attachment_ID");
-                                a1.setUrl(url);
+
+                                String aid=a1.getId();
+                                //System.out.println(aid);
+                                String id=getIdentifier(attachmentId);
+                                String url=uploadToFileSystem(file,id);
+                               // System.out.println(url);
+                                attachmentRepository.findById(attachmentId).setUrl(url);
+                               // System.out.println(a1.getUrl());
+                               // System.out.println(a1);
+                                attachmentRepository.save(a1);
                               //  setResponse(resp);
                                 setResponse(HttpStatus.NO_CONTENT, response, msg);
 
