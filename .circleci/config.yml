@@ -13,17 +13,4 @@ jobs:
           command: |
             pwd
             ./mvnw clean install 
-      - run:
-          name: Zip Artifact
-          command: |
-            echo "Hello the current build number is ${CIRCLE_BUILD_NUM}"
-            pwd
-            ls -al
-      - run:
-          name: Upload Artifact to S3
-          command: |
-            echo "Hello"
-      - run:
-          name: Make CodeDeploy API call
-          command: |
-            echo "Hello CodeDeploy" 
+      
