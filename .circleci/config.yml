@@ -12,7 +12,7 @@ jobs:
           name: Build Artifact
           command: |
             pwd
-            ./mvn clean install 
+            mvn clean install 
       - run:
           name: Zip Artifact
           command: |
