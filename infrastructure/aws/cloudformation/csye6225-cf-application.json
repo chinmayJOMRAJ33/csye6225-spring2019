@@ -354,9 +354,14 @@
 		
 
 
-		}	
-			
+		},
 
-
+	"CodeDeployApplication":{
+		"Type" : "AWS::CodeDeploy::Application",
+		"Properties" : {
+			"ApplicationName" : "csye6225-webapp",
+			"ComputePlatform" : "Server"
+		}
 
 	}
+}
