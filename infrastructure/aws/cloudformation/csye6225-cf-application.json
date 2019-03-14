@@ -284,7 +284,75 @@
 		"PubliclyAccessible":true,
 		"DBSecurityGroups" : [ { "Ref" : "DBSecurityGroup"}]
 				}
-			}
+			},
+	"CodeDeployEC2S3": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "This policy allows EC2 instances to get data from S3 buckets. This is required for EC2 instances to download latest application revision.",
+                "Path": "/",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Get*",
+                                "s3:List*",
+                                "s3:Put*",
+                                "s3:Delete*"
+                            ],
+                            "Resource": [
+                                {"Fn::Join":["",["arn:aws:s3:::",{"Ref":"S3Bucket"},"/*"]]}
+                            ]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Get*",
+                                "s3:List*"
+                            ],
+                            "Resource":[
+                                {"Fn::Join":["",["arn:aws:s3:::",{"Ref":"S3CodeBucket"},"/*"]]}
+                            ]
+                        }
+                    ]
+		},
+								
+		"Roles":[{"Ref":"CodeDeployEC2ServiceRole"}],
+                "ManagedPolicyName": "CodeDeployEC2S3"
+            }
+	}, 
+	"CodeDeployEC2ServiceRole": {
+					"Type": "AWS::IAM::Role",
+					"Properties": {
+						"RoleName" : "CodeDeployEC2ServiceRole",
+						 "AssumeRolePolicyDocument": {
+								"Version" : "2012-10-17",
+								"Statement": [ {
+									 "Effect": "Allow",
+									 "Principal": {
+											"Service": [ "ec2.amazonaws.com" ]
+									 },
+									 "Action": [ "sts:AssumeRole" ]
+								} ]
+						 },
+						 "Path": "/"
+						 }
+			 
+			 }, 
+	"EC2ServiceRoleInstanceProfile": {
+							"Type": "AWS::IAM::InstanceProfile",
+							"Properties": {
+									"Path": "/",
+									"Roles": [
+													"CodeDeployEC2ServiceRole"
+									],
+									"InstanceProfileName": "EC2ServiceRoleInstanceProfile"
+							},
+							"DependsOn": "CodeDeployEC2ServiceRole"
+					}
+		
+
 
 		}	
 			
