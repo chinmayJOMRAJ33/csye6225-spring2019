@@ -363,5 +363,31 @@
 			"ComputePlatform" : "Server"
 		}
 
+	},
+	"CodeDeployApplicationGroup":
+	{
+		"Type" : "AWS::CodeDeploy::DeploymentGroup",
+		"Properties" : {
+			"ApplicationName" : {"Ref" : "CodeDeployApplication"},
+			"AutoRollbackConfiguration" : {
+				"Events" : [ "DEPLOYMENT_FAILURE" ]
+			},
+			"DeploymentConfigName" : "CodeDeployDefault.AllAtOnce",
+			"DeploymentGroupName" : "csye6225-webapp-deployment",
+			"DeploymentStyle" : {
+				"DeploymentType" : "IN_PLACE",
+				"DeploymentOption": "WITHOUT_TRAFFIC_CONTROL"
+			},
+			"Ec2TagFilters": [
+				{
+					"Key": { "Ref": "TagKey" },
+					"Value": { "Ref": "TagValue" },
+					"Type": "KEY_AND_VALUE"
+				}
+			],
+			"ServiceRoleArn" : {"Ref":"RoleArn"}
+		},
+		"DependsOn": ["CodeDeployApplication","ourEC2Instance"]
+
 	}
 }
