@@ -1,4 +1,4 @@
-#!/bin/bash
+ii#!/bin/bash
 NET_STACK_NAME=$1
 centoskey=$2
 EC2="${NET_STACK_NAME}-csye6225-ec2"
@@ -28,7 +28,7 @@ echo "ami id is : $AMI"
 roleArn=$(aws iam get-role --role-name CodeDeployServiceRole --query 'Role.Arn' --output text)
 echo $roleArn
 
-aws cloudformation validate-template --template-body file://modapp.json >/dev/null 2>&1
+aws cloudformation validate-template --template-body file://csye6225-cf-application.json >/dev/null 2>&1
 #aws cloudformation validate-template --template-body file://modapp.json
 ret=$?
 if [ $ret -ne 0 ];
@@ -39,7 +39,7 @@ fi
 
 
 #aws cloudformation create-stack --stack-name $NET_STACK_NAME --template-body file://modapp.json --parameters ParameterKey=VpcId,ParameterValue=$vpcID ParameterKey=EC2Name,ParameterValue=$EC2 ParameterKey=SubnetId1,ParameterValue=$subnet1 ParameterKey=SubnetId2,ParameterValue=$subnet2 ParameterKey=SubnetId3,ParameterValue=$subnet3 ParameterKey=AMI,ParameterValue=$AMI ParameterKey=keyName,ParameterValue=$keyPair ParameterKey=S3Bucket,ParameterValue=$S3Bucket ParameterKey=S3CodeBucket,ParameterValue=$S3CodeBucket ParameterKey=RoleArn,ParameterValue=$roleArn --capabilities CAPABILITY_NAMED_IAM
-aws cloudformation create-stack --stack-name $NET_STACK_NAME --template-body file://modapp.json --parameters ParameterKey=VpcId,ParameterValue=$vpcID ParameterKey=EC2Name,ParameterValue=$EC2 ParameterKey=SubnetId1,ParameterValue=$subnet1 ParameterKey=SubnetId2,ParameterValue=$subnet2 ParameterKey=SubnetId3,ParameterValue=$subnet3 ParameterKey=AMI,ParameterValue=$AMI ParameterKey=keyName,ParameterValue=$centoskey ParameterKey=S3Bucket,ParameterValue=$S3Bucket ParameterKey=S3CodeBucket,ParameterValue=$S3CodeBucket ParameterKey=RoleArn,ParameterValue=$roleArn --capabilities CAPABILITY_NAMED_IAM
+aws cloudformation create-stack --stack-name $NET_STACK_NAME --template-body file://csye6225-cf-application.json --parameters ParameterKey=VpcId,ParameterValue=$vpcID ParameterKey=EC2Name,ParameterValue=$EC2 ParameterKey=SubnetId1,ParameterValue=$subnet1 ParameterKey=SubnetId2,ParameterValue=$subnet2 ParameterKey=SubnetId3,ParameterValue=$subnet3 ParameterKey=AMI,ParameterValue=$AMI ParameterKey=keyName,ParameterValue=$centoskey ParameterKey=S3Bucket,ParameterValue=$S3Bucket ParameterKey=S3CodeBucket,ParameterValue=$S3CodeBucket ParameterKey=RoleArn,ParameterValue=$roleArn --capabilities CAPABILITY_NAMED_IAM
 
 export STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $NET_STACK_NAME --query "Stacks[][ [StackStatus ] ][]" --output text)
 

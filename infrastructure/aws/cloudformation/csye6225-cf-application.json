@@ -206,86 +206,118 @@
 					"FromPort" : "3306",
 					"ToPort" : "3306",
 					"CidrIp" : "0.0.0.0/0"
+				}]
+			}
 				},
-				{
-					"TpProtocol":"tcp",
-					"FromPort": "8080",
-					"ToPort":"8080",
-					"CidrIp":"0.0.0.0/0"
-				}
-			]
-			}
-		},
-		"AWSdynamotable": {
-			"Type" : "AWS::DynamoDB::Table",
-			"Properties" : {
 				
-				"AttributeDefinitions": [
-					{
-						"AttributeName": "id",
-						"AttributeType": "S"
-					}
-				],
-				"TableName":"csye6225",
-				"KeySchema": [
-					{
-						"AttributeName": "id",
-						"KeyType": "HASH"
-					}
-				],
-				"ProvisionedThroughput":{
-					"ReadCapacityUnits" : 2,
-					"WriteCapacityUnits" : 2
-				 }
-
-			}
-		},
+				"AWSdynamotable": {
+					"Type" : "AWS::DynamoDB::Table",
+					"Properties" : {
+						
+						"AttributeDefinitions": [
+							{
+								"AttributeName": "id",
+								"AttributeType": "S"
+							}
+						],
+						"TableName":"csye6225",
+						"KeySchema": [
+							{
+								"AttributeName": "id",
+								"KeyType": "HASH"
+							}
+						],
+						"ProvisionedThroughput":{
+							"ReadCapacityUnits" : 2,
+							"WriteCapacityUnits" : 2
+						 }
 		
-
-	"DBSecurityGroup": {
-   		"Type": "AWS::RDS::DBSecurityGroup",
-   		"Properties": {
-      			"EC2VpcId" : { "Ref" : "VpcId" },
-      			"DBSecurityGroupIngress": [
-         			{"EC2SecurityGroupId": {
-              				"Fn::GetAtt": [
-                			"WebServerSecurityGroup","GroupId"
-              				]
-				}
-          		}
-      			],
-      			"GroupDescription": "DB SecurityGroup"
-   		}
-	},
-
-		"dbSubnetGroup":{
-			"Type" : "AWS::RDS::DBSubnetGroup",
-			"Properties" : {
-				"DBSubnetGroupDescription" : "RDS Subnet Group",
-				"DBSubnetGroupName" : "rds",
-				"SubnetIds" : [{"Ref":"SubnetId2"},{"Ref":"SubnetId3"}]
-			  
-			 }
-		 },
-		"MyRDSDB" : {
-            "Type" : "AWS::RDS::DBInstance",
-            "Properties" : {
-                "AllocatedStorage" : "10",
-                "MultiAZ" : "False",
-                "DBInstanceIdentifier" : "csye6225",
-                "DBInstanceClass" : "db.t2.medium",
-                "MasterUsername" : "csye6225master",
-                "MasterUserPassword" : "csye6225password",
-                "Engine" : "MySQL",
-		"DBName" : "csye6225",
-		"DBSubnetGroupName":{
-			"Ref":"dbSubnetGroup"
-		},
-		"PubliclyAccessible":true,
-		"DBSecurityGroups" : [ { "Ref" : "DBSecurityGroup"}]
-				}
+					}
+				},
+				
+		
+			"DBSecurityGroup": {
+					 "Type": "AWS::RDS::DBSecurityGroup",
+					 "Properties": {
+								"EC2VpcId" : { "Ref" : "VpcId" },
+								"DBSecurityGroupIngress": [
+									 {"EC2SecurityGroupId": {
+													"Fn::GetAtt": [
+													"WebServerSecurityGroup","GroupId"
+													]
+						}
+									}
+								],
+								"GroupDescription": "DB SecurityGroup"
+					 }
 			},
-	"CodeDeployEC2S3": {
+		
+				"dbSubnetGroup":{
+					"Type" : "AWS::RDS::DBSubnetGroup",
+					"Properties" : {
+						"DBSubnetGroupDescription" : "RDS Subnet Group",
+						"DBSubnetGroupName" : "rds",
+						"SubnetIds" : [{"Ref":"SubnetId2"},{"Ref":"SubnetId3"}]
+						
+					 }
+				 },
+				"MyRDSDB" : {
+								"Type" : "AWS::RDS::DBInstance",
+								"Properties" : {
+										"AllocatedStorage" : "10",
+										"MultiAZ" : "False",
+										"DBInstanceIdentifier" : "csye6225",
+										"DBInstanceClass" : "db.t2.micro",
+										"MasterUsername" : "csye6225master",
+										"MasterUserPassword" : "csye6225password",
+										"Engine" : "MySQL",
+				"DBName" : "csye6225",
+				"DBSubnetGroupName":{
+					"Ref":"dbSubnetGroup"
+				},
+				"PubliclyAccessible":true,
+				"DBSecurityGroups" : [ { "Ref" : "DBSecurityGroup"}]
+						}
+					},
+
+        "CodeDeployApplication":{
+            "Type" : "AWS::CodeDeploy::Application",
+            "Properties" : {
+              "ApplicationName" : "csye6225-webapp",
+              "ComputePlatform" : "Server"
+            }
+            
+				},
+				
+
+        "CodeDeployApplicationGroup":
+            {
+                "Type" : "AWS::CodeDeploy::DeploymentGroup",
+                "Properties" : {
+                  "ApplicationName" : {"Ref" : "CodeDeployApplication"},
+                  "AutoRollbackConfiguration" : {
+                    "Events" : [ "DEPLOYMENT_FAILURE" ]
+                  },
+                  "DeploymentConfigName" : "CodeDeployDefault.AllAtOnce",
+                  "DeploymentGroupName" : "csye6225-webapp-deployment",
+                  "DeploymentStyle" : {
+                    "DeploymentType" : "IN_PLACE",
+                    "DeploymentOption": "WITHOUT_TRAFFIC_CONTROL"
+                  },
+									"Ec2TagFilters": [
+                    {
+                        "Key": { "Ref": "TagKey" },
+                        "Value": { "Ref": "TagValue" },
+                        "Type": "KEY_AND_VALUE"
+                    }
+                ],
+                  "ServiceRoleArn" : {"Ref":"RoleArn"}
+                },
+								"DependsOn": ["CodeDeployApplication","ourEC2Instance"]
+							
+						},
+
+					"CodeDeployEC2S3": {
             "Type": "AWS::IAM::ManagedPolicy",
             "Properties": {
                 "Description": "This policy allows EC2 instances to get data from S3 buckets. This is required for EC2 instances to download latest application revision.",
@@ -316,13 +348,12 @@
                             ]
                         }
                     ]
-		},
-								
-		"Roles":[{"Ref":"CodeDeployEC2ServiceRole"}],
+								},
+								"Roles":[{"Ref":"CodeDeployEC2ServiceRole"}],
                 "ManagedPolicyName": "CodeDeployEC2S3"
             }
-	}, 
-	"CodeDeployEC2ServiceRole": {
+				},        
+				"CodeDeployEC2ServiceRole": {
 					"Type": "AWS::IAM::Role",
 					"Properties": {
 						"RoleName" : "CodeDeployEC2ServiceRole",
@@ -340,7 +371,7 @@
 						 }
 			 
 			 }, 
-	"EC2ServiceRoleInstanceProfile": {
+						"EC2ServiceRoleInstanceProfile": {
 							"Type": "AWS::IAM::InstanceProfile",
 							"Properties": {
 									"Path": "/",
@@ -351,43 +382,6 @@
 							},
 							"DependsOn": "CodeDeployEC2ServiceRole"
 					}
-		
-
-
-		},
-
-	"CodeDeployApplication":{
-		"Type" : "AWS::CodeDeploy::Application",
-		"Properties" : {
-			"ApplicationName" : "csye6225-webapp",
-			"ComputePlatform" : "Server"
-		}
-
-	},
-	"CodeDeployApplicationGroup":
-	{
-		"Type" : "AWS::CodeDeploy::DeploymentGroup",
-		"Properties" : {
-			"ApplicationName" : {"Ref" : "CodeDeployApplication"},
-			"AutoRollbackConfiguration" : {
-				"Events" : [ "DEPLOYMENT_FAILURE" ]
-			},
-			"DeploymentConfigName" : "CodeDeployDefault.AllAtOnce",
-			"DeploymentGroupName" : "csye6225-webapp-deployment",
-			"DeploymentStyle" : {
-				"DeploymentType" : "IN_PLACE",
-				"DeploymentOption": "WITHOUT_TRAFFIC_CONTROL"
-			},
-			"Ec2TagFilters": [
-				{
-					"Key": { "Ref": "TagKey" },
-					"Value": { "Ref": "TagValue" },
-					"Type": "KEY_AND_VALUE"
-				}
-			],
-			"ServiceRoleArn" : {"Ref":"RoleArn"}
-		},
-		"DependsOn": ["CodeDeployApplication","ourEC2Instance"]
-
-	}
+						
+	}	
 }
