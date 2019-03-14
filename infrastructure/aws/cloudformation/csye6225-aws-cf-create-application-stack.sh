@@ -1,4 +1,4 @@
-ii#!/bin/bash
+#!/bin/bash
 NET_STACK_NAME=$1
 centoskey=$2
 EC2="${NET_STACK_NAME}-csye6225-ec2"

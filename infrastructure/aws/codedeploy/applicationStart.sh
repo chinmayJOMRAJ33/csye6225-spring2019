@@ -1,2 +1,3 @@
 #!/bin/bash
-sudo systemctl start tomcat.service
+cd /opt/tomcat/webapps
+java -jar assignment1-0.0.1-SNAPSHOT.war
