@@ -6,4 +6,4 @@ Stack creation takes some time to create all resources in stack and shell will p
 
 Run the shell script to terminate aws cloud formation stack using command sh csye6225-aws-cf-terminate-stack.sh stack_name
 
-Stack resources will be deleted one-by-one and shell will prompt with success message
+Stack resources will be deleted one-by-one and shell will prompt with success message.
