@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /opt/tomcat/webapps
+java -jar assignment1-0.0.1-SNAPSHOT.war
