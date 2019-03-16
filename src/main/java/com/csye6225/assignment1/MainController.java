@@ -306,7 +306,7 @@ public class MainController {
             setResponse(HttpStatus.UNAUTHORIZED, response, msg);
             return a;
         }
-
+   // httpServletRequest.getServletContext()
 
 
         if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
@@ -347,7 +347,7 @@ public class MainController {
                         String aid=a.getId();
                         String id=getIdentifier(aid);
                         if(profileName.equalsIgnoreCase(name)){
-                            url=uploadToAWS(file,id);
+                            url=uploadToAWS(file,id,req);
 
                         }
                         else
@@ -375,13 +375,13 @@ public class MainController {
         return a;
     }
 
-    public String uploadToAWS(MultipartFile multipartFile,String aid) {
+    public String uploadToAWS(MultipartFile multipartFile,String aid,HttpServletRequest req) {
 
         String fileUrl = "";
         try {
 
 
-            File file = convertMultiPartFileToFile(multipartFile);
+            File file = convertMultiPartFileToFile(multipartFile,req);
           //  String fileName = multipartFile .getOriginalFilename();
             String fileName = aid + "_" + multipartFile .getOriginalFilename();
             String endpointUrl=env.getProperty("endpointUrl");
@@ -396,15 +396,17 @@ public class MainController {
         return fileUrl;
     }
 
-    public File convertMultiPartFileToFile(MultipartFile file) throws IOException {
+    public File convertMultiPartFileToFile(MultipartFile file,HttpServletRequest req) throws IOException {
        // File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
 
        // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
        // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
        // file.transferTo(convFile);
        // return convFile;
-
-        File convFile = new File(file.getOriginalFilename());
+        String fileName=file.getOriginalFilename();
+        String uploadDir="/uploads/";
+        String pathToUpload=req.getServletContext().getRealPath(uploadDir);
+        File convFile = new File(pathToUpload+file.getOriginalFilename());
         convFile.createNewFile();
         FileOutputStream fos = new FileOutputStream(convFile);
         fos.write(file.getBytes());
