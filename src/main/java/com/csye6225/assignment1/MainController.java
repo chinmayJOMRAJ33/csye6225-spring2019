@@ -347,7 +347,7 @@ public class MainController {
                         String aid=a.getId();
                         String id=getIdentifier(aid);
                         if(profileName.equalsIgnoreCase(name)){
-                            url=uploadToAWS(file,id,req);
+                            url=uploadToAWS(file,id,httpServletRequest);
 
                         }
                         else
@@ -694,7 +694,7 @@ public class MainController {
                                  //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
                                  //  msg.append("Deleted Successfully from local file system");
                                    setResponse(HttpStatus.NO_CONTENT, response, msg);
-                                   uploadToAWS(file,id);
+                                   uploadToAWS(file,id,null);
                                    return null;
                                }
 
