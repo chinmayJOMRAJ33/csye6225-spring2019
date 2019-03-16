@@ -47,7 +47,7 @@ public class MainController {
     @Autowired
     private Environment env;
 
-    @Value("${profile.name}")
+    @Value("${spring.profiles.active}")
     private String profileName;
 
     public String name="dev";
@@ -383,8 +383,8 @@ public class MainController {
             File file = convertMultiPartFileToFile(multipartFile);
           //  String fileName = multipartFile .getOriginalFilename();
             String fileName = aid + "_" + multipartFile .getOriginalFilename();
-            String endpointUrl=env.getProperty("endpointurl");
-            String bucketName=env.getProperty("bucketname");
+            String endpointUrl=env.getProperty("endpointUrl");
+            String bucketName=env.getProperty("bucketName");
             fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
             amazonClient.uploadFileTos3bucket(bucketName,fileName, file);
 
@@ -396,7 +396,9 @@ public class MainController {
     }
 
     public File convertMultiPartFileToFile(MultipartFile file) throws IOException {
-        File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
+       // File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
+
+        File convFile = new File("/home/centos"+"/"+file.getOriginalFilename());
         file.transferTo(convFile);
         return convFile;
     }

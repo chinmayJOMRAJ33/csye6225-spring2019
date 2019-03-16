@@ -49,7 +49,7 @@ public class AmazonClient {
 
     public void uploadFileTos3bucket(String bn,String fileName, File file) {
         s3client.putObject(new PutObjectRequest(bn, fileName, file)
-                .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl));
+                .withCannedAcl(CannedAccessControlList.PublicRead));
     }
 
 
