@@ -2,6 +2,7 @@ package com.csye6225.assignment1;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -40,11 +41,17 @@ public class AmazonClient {
 //        this.profilename = profilename;
 //    }
 
-    @PostConstruct
-    private void initializeAmazon() {
-        s3client = AmazonS3ClientBuilder.defaultClient();
-    }
-
+   // @PostConstruct
+   // private void initializeAmazon() {
+     //   s3client = AmazonS3ClientBuilder.defaultClient();
+   // }
+@PostConstruct
+private void initializeAmazon(){
+    s3client=AmazonS3ClientBuilder.standard()
+            .withRegion("us-east-1")
+            .withCredentials(new ProfileCredentialsProvider())
+            .build();
+}
 
 
     public void uploadFileTos3bucket(String bn,String fileName, File file) {
@@ -59,4 +66,6 @@ public class AmazonClient {
         s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
         return "Successfully deleted";
     }
+
+
 }
