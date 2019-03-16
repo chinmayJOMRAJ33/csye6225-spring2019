@@ -160,7 +160,7 @@ public class MainController {
                     DateFormat dateFormat=new SimpleDateFormat(strDateFormat);
                     String formattedDate=dateFormat.format(date);
                     String b=env.getProperty("bucketName");
-                    j.setMsg("User is logged in! "+formattedDate +" "+b);
+                    j.setMsg("User is logged in! "+formattedDate);
                     j.setStatuscode(HttpStatus.OK);
                     j.setCode(HttpStatus.OK.value());
                     response.setStatus(HttpStatus.OK.value());
@@ -403,6 +403,7 @@ public class MainController {
        // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
        //
        // return convFile;
+
         String fileName=file.getOriginalFilename();
         String uploadDir="/uploads/";
         String pathToUpload=req.getServletContext().getRealPath(uploadDir);
@@ -698,7 +699,7 @@ public class MainController {
                                  //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
                                  //  msg.append("Deleted Successfully from local file system");
                                    setResponse(HttpStatus.NO_CONTENT, response, msg);
-                                   uploadToAWS(file,id,null);
+                                   uploadToAWS(file,id,httpServletRequest);
                                    return null;
                                }
 
