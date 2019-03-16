@@ -406,6 +406,9 @@ public class MainController {
         String fileName=file.getOriginalFilename();
         String uploadDir="/uploads/";
         String pathToUpload=req.getServletContext().getRealPath(uploadDir);
+        if(! new File(pathToUpload).exists()){
+            new File(pathToUpload).mkdir();
+        }
         File convFile = new File(pathToUpload+file.getOriginalFilename());
        // convFile.createNewFile();
        // FileOutputStream fos = new FileOutputStream(convFile);
