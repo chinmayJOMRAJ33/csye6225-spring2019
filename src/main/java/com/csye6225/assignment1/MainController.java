@@ -400,8 +400,15 @@ public class MainController {
        // File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
 
        // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
-        File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
-        file.transferTo(convFile);
+       // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
+       // file.transferTo(convFile);
+       // return convFile;
+
+        File convFile = new File(file.getOriginalFilename());
+        convFile.createNewFile();
+        FileOutputStream fos = new FileOutputStream(convFile);
+        fos.write(file.getBytes());
+        fos.close();
         return convFile;
     }
 
