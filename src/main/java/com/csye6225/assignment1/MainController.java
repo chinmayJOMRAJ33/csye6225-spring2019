@@ -159,7 +159,8 @@ public class MainController {
                     String strDateFormat= "hh:mm:ss a";
                     DateFormat dateFormat=new SimpleDateFormat(strDateFormat);
                     String formattedDate=dateFormat.format(date);
-                    j.setMsg("User is logged in! "+formattedDate);
+                    String b=env.getProperty("bucketName");
+                    j.setMsg("User is logged in! "+formattedDate +" "+b);
                     j.setStatuscode(HttpStatus.OK);
                     j.setCode(HttpStatus.OK.value());
                     response.setStatus(HttpStatus.OK.value());
@@ -398,7 +399,8 @@ public class MainController {
     public File convertMultiPartFileToFile(MultipartFile file) throws IOException {
        // File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
 
-        File convFile = new File("/home/centos"+"/"+file.getOriginalFilename());
+       // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
+        File convFile = new File("/home/centos/uploads"+"/"+file.getOriginalFilename());
         file.transferTo(convFile);
         return convFile;
     }
