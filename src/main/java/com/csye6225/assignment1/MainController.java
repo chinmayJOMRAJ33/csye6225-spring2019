@@ -401,16 +401,17 @@ public class MainController {
 
        // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
        // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
-       // file.transferTo(convFile);
+       //
        // return convFile;
         String fileName=file.getOriginalFilename();
         String uploadDir="/uploads/";
         String pathToUpload=req.getServletContext().getRealPath(uploadDir);
         File convFile = new File(pathToUpload+file.getOriginalFilename());
-        convFile.createNewFile();
-        FileOutputStream fos = new FileOutputStream(convFile);
-        fos.write(file.getBytes());
-        fos.close();
+       // convFile.createNewFile();
+       // FileOutputStream fos = new FileOutputStream(convFile);
+       // fos.write(file.getBytes());
+       // fos.close();
+        file.transferTo(convFile);
         return convFile;
     }
 
