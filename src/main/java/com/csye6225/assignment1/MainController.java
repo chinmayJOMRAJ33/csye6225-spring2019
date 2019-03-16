@@ -400,7 +400,7 @@ public class MainController {
        // File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
 
        // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
-        File convFile = new File("/home/centos/uploads"+"/"+file.getOriginalFilename());
+        File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
         file.transferTo(convFile);
         return convFile;
     }
