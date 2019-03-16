@@ -48,10 +48,11 @@ public class AmazonClient {
    // }
 @PostConstruct
 private void initializeAmazon(){
-    s3client=AmazonS3ClientBuilder.standard()
-            .withRegion("us-east-1")
-            .withCredentials(new InstanceProfileCredentialsProvider(false))
-            .build();
+   // s3client=AmazonS3ClientBuilder.standard()
+    //        .withRegion("us-east-1")
+     //       .withCredentials(new InstanceProfileCredentialsProvider(false))
+      //      .build();
+    s3client=AmazonS3ClientBuilder.standard().build();
 }
 
 
