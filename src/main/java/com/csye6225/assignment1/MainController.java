@@ -47,7 +47,7 @@ public class MainController {
     @Autowired
     private Environment env;
 
-    @Value("${profile.name}")
+    @Value("${spring.profiles.active}")
     private String profileName;
 
     public String name="dev";
@@ -159,6 +159,7 @@ public class MainController {
                     String strDateFormat= "hh:mm:ss a";
                     DateFormat dateFormat=new SimpleDateFormat(strDateFormat);
                     String formattedDate=dateFormat.format(date);
+                    String b=env.getProperty("bucketName");
                     j.setMsg("User is logged in! "+formattedDate);
                     j.setStatuscode(HttpStatus.OK);
                     j.setCode(HttpStatus.OK.value());
@@ -305,7 +306,7 @@ public class MainController {
             setResponse(HttpStatus.UNAUTHORIZED, response, msg);
             return a;
         }
-
+   // httpServletRequest.getServletContext()
 
 
         if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
@@ -346,7 +347,7 @@ public class MainController {
                         String aid=a.getId();
                         String id=getIdentifier(aid);
                         if(profileName.equalsIgnoreCase(name)){
-                            url=uploadToAWS(file,id);
+                            url=uploadToAWS(file,id,httpServletRequest);
 
                         }
                         else
@@ -374,17 +375,17 @@ public class MainController {
         return a;
     }
 
-    public String uploadToAWS(MultipartFile multipartFile,String aid) {
+    public String uploadToAWS(MultipartFile multipartFile,String aid,HttpServletRequest req) {
 
         String fileUrl = "";
         try {
 
 
-            File file = convertMultiPartFileToFile(multipartFile);
+            File file = convertMultiPartFileToFile(multipartFile,req);
           //  String fileName = multipartFile .getOriginalFilename();
             String fileName = aid + "_" + multipartFile .getOriginalFilename();
-            String endpointUrl=env.getProperty("endpointurl");
-            String bucketName=env.getProperty("bucketname");
+            String endpointUrl=env.getProperty("endpointUrl");
+            String bucketName=env.getProperty("bucketName");
             fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
             amazonClient.uploadFileTos3bucket(bucketName,fileName, file);
 
@@ -395,8 +396,25 @@ public class MainController {
         return fileUrl;
     }
 
-    public File convertMultiPartFileToFile(MultipartFile file) throws IOException {
-        File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
+    public File convertMultiPartFileToFile(MultipartFile file,HttpServletRequest req) throws IOException {
+       // File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
+
+       // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
+       // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
+       //
+       // return convFile;
+
+        String fileName=file.getOriginalFilename();
+        String uploadDir="/uploads/";
+        String pathToUpload=req.getServletContext().getRealPath(uploadDir);
+        if(! new File(pathToUpload).exists()){
+            new File(pathToUpload).mkdir();
+        }
+        File convFile = new File(pathToUpload+file.getOriginalFilename());
+       // convFile.createNewFile();
+       // FileOutputStream fos = new FileOutputStream(convFile);
+       // fos.write(file.getBytes());
+       // fos.close();
         file.transferTo(convFile);
         return convFile;
     }
@@ -681,7 +699,7 @@ public class MainController {
                                  //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
                                  //  msg.append("Deleted Successfully from local file system");
                                    setResponse(HttpStatus.NO_CONTENT, response, msg);
-                                   uploadToAWS(file,id);
+                                   uploadToAWS(file,id,httpServletRequest);
                                    return null;
                                }
 
