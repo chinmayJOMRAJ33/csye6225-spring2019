@@ -134,64 +134,40 @@
                                 "echo 'RestartSec=10' >> tomcat.service",
                                 "echo 'Restart=always' >> tomcat.service",
                                 "echo '[Install]' >> tomcat.service",
-                                "echo 'WantedBy=multi-user.target' >> tomcat.service",
-                                "sudo systemctl daemon-reload",
-                                "sudo systemctl start tomcat.service",
-                                "sudo systemctl enable tomcat.service",
-                                "sudo chmod -R 777 /opt/tomcat/bin",
-                                "sudo chmod -R 777 /opt/tomcat/webapps",
-                                "cd /opt/tomcat/bin",
-                                "touch setenv.sh",
+								"echo 'WantedBy=multi-user.target' >> tomcat.service",
+								"sudo chmod -R 777 /opt/tomcat",
+								"echo '#!/bin/sh' >> /opt/tomcat/bin/setenv.sh",
 
-                                {
-                                    "Fn::Join":[
-                                        "",
-                                        [
-                                            "sudo echo \"JAVA_OPTS='-Dspring.datasource.username=csye6225master -Dspring.datasource.password=csye6225password -DprofileName=dev -Dspring.profiles.active=dev -Dspring.datasource.url=jdbc:mysql://",
-                                            {
-                                                "Fn::GetAtt":[
-                                                    "MyRDSDB",
-                                                    "Endpoint.Address"
-                                                ]
-                                            },
-                                            ":3306/",
-                                            {
-                                                "Fn::Join":[
-                                                    "",
-                                                    [                                                       
-                                                        {"Ref":"DBName"}
-                                                    ]
-                                                ]
-                                            },
-                                            " -DdevProperties.bucketName=",
-                                            {
-                                                "Fn::Join":[
-                                                    "",
-                                                    [
-                                                        {"Ref":"S3Bucket"}
-                                                    ]
-                                                ]                                            
-                                            },
-                                            " -DdevProperties.endpointUrl=",
-                                            {
-                                                "Fn::GetAtt":[
-                                                    "MyRDSDB",
-                                                    "Endpoint.Address"
-                                                ]                                            
-                                            },
-                                            "'\" >> /opt/tomcat/bin/setenv.sh"
-                                        ]
-                                    ]
-                                },
-                                "sudo systemctl restart tomcat.service"
-                            ]
-                        ]
-                    }
-                }
-				
-
-
-
+								{
+									"Fn::Join": [
+									  "",
+									  [
+										"echo 'JAVA_OPTS=\"${JAVA_OPTS} -Durl=jdbc:mysql://",
+										{
+										  "Fn::GetAtt": [
+											"MyRDSDB",
+											"Endpoint.Address"
+										  ]
+										},
+										":3306/csye6225\"'>> /opt/tomcat/bin/setenv.sh \n"
+									  ]
+									]
+								  },
+								  {"Fn::Join":["",["sudo echo \"JAVA_OPTS=\\\"\\${JAVA_OPTS} -Dspring.profiles.active=dev\\\"\" >> /opt/tomcat/bin/setenv.sh "]]},
+								  {"Fn::Join":["",["sudo echo \"JAVA_OPTS=\\\"\\${JAVA_OPTS} -DendpointUrl=https://s3.us-east-1.amazonaws.com\\\"\" >> /opt/tomcat/bin/setenv.sh "]]},
+								  {"Fn::Join":["",["sudo echo \"JAVA_OPTS=\\\"\\${JAVA_OPTS} -Dfolder=centos\\\"\" >> /opt/tomcat/bin/setenv.sh "]]},
+								  {"Fn::Join":["",["sudo echo \"JAVA_OPTS=\\\"\\${JAVA_OPTS} -Dusername=",{"Ref":"DBUsername"},"\\\"\" >> /opt/tomcat/bin/setenv.sh "]]},
+								  {"Fn::Join":["",["sudo echo \"JAVA_OPTS=\\\"\\${JAVA_OPTS} -Dpassword=",{"Ref":"DBPassword"},"\\\"\" >> /opt/tomcat/bin/setenv.sh "]]},
+								  {"Fn::Join":["",["sudo echo \"JAVA_OPTS=\\\"\\${JAVA_OPTS} -DbucketName=",{"Ref":"S3Bucket"},"\\\"\" >> /opt/tomcat/bin/setenv.sh "]]},
+								  
+									
+								  "chmod +x /opt/tomcat/bin/setenv.sh",
+								  "systemctl daemon-reload", 
+									"systemctl enable tomcat.service",
+									"systemctl start tomcat.service"]
+								   ]
+								   }
+								}
 			},
 			"DependsOn": "EC2ServiceRoleInstanceProfile"
         },
@@ -222,7 +198,14 @@
 					"FromPort" : "3306",
 					"ToPort" : "3306",
 					"CidrIp" : "0.0.0.0/0"
-				}]
+				},
+				{
+					"IpProtocol":"tcp",
+					"FromPort": "8080",
+					"ToPort":"8080",
+					"CidrIp":"0.0.0.0/0"
+				}
+			]
 			}
 				},
 				
@@ -253,19 +236,21 @@
 				
 		
 			"DBSecurityGroup": {
-					 "Type": "AWS::RDS::DBSecurityGroup",
-					 "Properties": {
-								"EC2VpcId" : { "Ref" : "VpcId" },
-								"DBSecurityGroupIngress": [
-									 {"EC2SecurityGroupId": {
-													"Fn::GetAtt": [
-													"WebServerSecurityGroup","GroupId"
-													]
-						}
-									}
-								],
-								"GroupDescription": "DB SecurityGroup"
-					 }
+					 "Type": "AWS::EC2::SecurityGroup",
+					 "Properties":{
+						"GroupDescription":"Creating Security group with ingress rules for webapp",
+						"GroupName": "csye6225-rds",
+						"VpcId": {"Ref":"VpcId"},
+						"SecurityGroupIngress":[
+							{
+								"IpProtocol":"tcp",
+								"FromPort":"3306",
+								"ToPort":"3306",
+								"SourceSecurityGroupId":{"Ref":"WebServerSecurityGroup"}
+							}
+						],
+						"Tags" :[{"Key":"Name","Value":"csye6225-rds"}]
+					}
 			},
 		
 				"dbSubnetGroup":{
@@ -283,7 +268,7 @@
 										"AllocatedStorage" : "10",
 										"MultiAZ" : "False",
 										"DBInstanceIdentifier" : "csye6225",
-										"DBInstanceClass" : "db.t2.micro",
+										"DBInstanceClass" : "db.t2.medium",
 										"MasterUsername" : "csye6225master",
 										"MasterUserPassword" : "csye6225password",
 										"Engine" : "MySQL",
@@ -292,7 +277,7 @@
 					"Ref":"dbSubnetGroup"
 				},
 				"PubliclyAccessible":true,
-				"DBSecurityGroups" : [ { "Ref" : "DBSecurityGroup"}]
+				"VPCSecurityGroups":[{"Ref":"DBSecurityGroup"}]
 						}
 					},
 
@@ -344,10 +329,10 @@
                         {
                             "Effect": "Allow",
                             "Action": [
-                                "s3:Get*",
-                                "s3:List*",
-                                "s3:Put*",
-                                "s3:Delete*"
+				"s3:PutObject",
+                                "s3:DeleteObject",
+                                "s3:GetObject",
+                                "s3:PutObjectAcl"
                             ],
                             "Resource": [
                                 {"Fn::Join":["",["arn:aws:s3:::",{"Ref":"S3Bucket"},"/*"]]}
