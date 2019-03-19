@@ -18,7 +18,7 @@
     <properties>
         <java.version>1.8</java.version>
         <start-class>com.csye6225.assignment1.Assignment1Application</start-class>
-        <tomcat.version>9.0.16</tomcat.version>
+        <tomcat.version>9.0.17</tomcat.version>
     </properties>
 
     <dependencies>
