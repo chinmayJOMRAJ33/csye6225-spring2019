@@ -51,9 +51,7 @@ private void initializeAmazon(){
 
     InstanceProfileCredentialsProvider provider
             = new InstanceProfileCredentialsProvider(true);
-    s3client = AmazonS3ClientBuilder.standard()
-            .withCredentials(provider)
-            .build();
+    s3client = AmazonS3ClientBuilder.standard().build();
 
 
     //s3client=AmazonS3ClientBuilder.standard()
@@ -62,6 +60,7 @@ private void initializeAmazon(){
       //      .build();
    // s3client=AmazonS3ClientBuilder.standard().build();
 }
+
 
 
     public void uploadFileTos3bucket(String bn,String fileName, File file) {

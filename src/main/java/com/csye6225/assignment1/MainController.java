@@ -192,27 +192,27 @@ public class MainController {
         return j;
     }
 
-    @PostMapping(path="/note")
+    @PostMapping(path="/notechaitanya")
     public @ResponseBody Note createNote(@RequestBody Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
         return saveNote(note,httpServletRequest,response);
     }
 
-    @GetMapping(path="/note/{id}")
+    @GetMapping(path="/notechaitanya/{id}")
     public @ResponseBody Note getNoteWithId(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
         return getNoteWithIdData(id,httpServletRequest,response);
     }
 
-    @GetMapping(path="/note")
+    @GetMapping(path="/notechaitanya")
     public @ResponseBody Set<Note> getAllNotes(HttpServletRequest httpServletRequest,HttpServletResponse response){
         return fetchAllNotes(httpServletRequest,response);
     }
 
-    @GetMapping(path="/note/{idNotes}/attachments")
+    @GetMapping(path="/notechaitanya/{idNotes}/attachments")
     public @ResponseBody Set<Attachment> getAttachmentsWithNoteId(@PathVariable("idNotes") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
         return getAttachmentswithNoteIdData(id,httpServletRequest,response);
     }
 
-    @PostMapping("/note/{idNotes}/attachments")
+    @PostMapping("/notechaitanya/{idNotes}/attachments")
     public @ResponseBody Attachment createFile(@RequestPart(value = "file") MultipartFile file, @PathVariable("idNotes")String noteId, HttpServletRequest httpServletRequest, HttpServletResponse response){
         return saveFile(file,noteId,httpServletRequest,response);
     }
@@ -452,7 +452,7 @@ public class MainController {
         return id;
     }
 
-    @DeleteMapping  (path="/note/{id}/attachments/{idAttachments}")
+    @DeleteMapping  (path="/notechaitanya/{id}/attachments/{idAttachments}")
     public @ResponseBody Object deleteAttachment(@PathVariable("id") String id,@PathVariable("idAttachments") String idAttachments,HttpServletRequest httpServletRequest,HttpServletResponse response){
         return deleteAttachmentWithNoteId(id, idAttachments, httpServletRequest, response);
 
@@ -609,7 +609,7 @@ public class MainController {
         return path.toString();
     }
 
-    @PutMapping("/note/{idNotes}/attachments/{idAttachments}")
+    @PutMapping("/notechaitanya/{idNotes}/attachments/{idAttachments}")
     public @ResponseBody Attachment updateFile(@RequestPart(value = "file") MultipartFile file, @PathVariable("idNotes")String noteId,@PathVariable("idAttachments")String attachmentId, HttpServletRequest httpServletRequest, HttpServletResponse response){
         return editFile(file,noteId,attachmentId,httpServletRequest,response);
     }
@@ -997,7 +997,7 @@ public class MainController {
     }
 
 
-    @PutMapping (path="/note/{id}")
+    @PutMapping (path="/notechaitanya/{id}")
     public @ResponseBody Object upateNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
         //JEntity j = new JEntity();
         String auth=httpServletRequest.getHeader("Authorization");
@@ -1096,7 +1096,7 @@ public class MainController {
 
 
 
-    @DeleteMapping  (path="/note/{id}")
+    @DeleteMapping  (path="/notechaitanya/{id}")
     public @ResponseBody Object deleteNote(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
         //JEntity j = new JEntity();
         String auth=httpServletRequest.getHeader("Authorization");
