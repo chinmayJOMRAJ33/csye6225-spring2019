@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -51,9 +52,7 @@ private void initializeAmazon(){
 
     InstanceProfileCredentialsProvider provider
             = new InstanceProfileCredentialsProvider(true);
-    s3client = AmazonS3ClientBuilder.standard()
-            .withCredentials(provider)
-            .build();
+    s3client = AmazonS3ClientBuilder.standard().build();
 
 
     //s3client=AmazonS3ClientBuilder.standard()
@@ -64,10 +63,26 @@ private void initializeAmazon(){
 }
 
 
+
+
     public void uploadFileTos3bucket(String bn,String fileName, File file) {
-        s3client.putObject(new PutObjectRequest(bn, fileName, file)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
+        //s3client.putObject(new PutObjectRequest(bn, fileName, file)
+          //      .withCannedAcl(CannedAccessControlList.PublicRead));
+        s3client.putObject(new PutObjectRequest(bn, fileName, file).withCannedAcl(CannedAccessControlList.PublicRead));
     }
+
+//    public void uploadFileTos3bucket(String bn,String fileName, File file) {
+//        s3client.putObject(new PutObjectRequest(bn, fileName, file)
+//                .withCannedAcl(CannedAccessControlList.PublicRead));
+//    }
+public void uploadFileTos3bucket(String bn,String fileName, MultipartFile file) throws IOException {
+
+    s3client.putObject(bn,fileName,file.getInputStream(),new ObjectMetadata());
+
+//    s3client.putObject(new PutObjectRequest(bn, fileName, ile)
+//            .withCannedAcl(CannedAccessControlList.PublicRead));
+}
+
 
 
 

@@ -387,7 +387,8 @@ public class MainController {
             String endpointUrl=env.getProperty("endpointUrl");
             String bucketName=env.getProperty("bucketName");
             fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
-            amazonClient.uploadFileTos3bucket(bucketName,fileName, file);
+           amazonClient.uploadFileTos3bucket(bucketName,fileName, file);
+         //  amazonClient.uploadFileTos3bucket(bucketName,fileName, multipartFile);
 
             // file.delete();
         } catch (Exception e) {
