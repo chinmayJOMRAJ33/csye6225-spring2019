@@ -68,7 +68,7 @@ private void initializeAmazon(){
     public void uploadFileTos3bucket(String bn,String fileName, File file) {
         //s3client.putObject(new PutObjectRequest(bn, fileName, file)
           //      .withCannedAcl(CannedAccessControlList.PublicRead));
-        s3client.putObject(new PutObjectRequest(bn, fileName, file).withFile(file));
+        s3client.putObject(new PutObjectRequest(bn, fileName, file).withCannedAcl(CannedAccessControlList.PublicRead));
     }
 
 //    public void uploadFileTos3bucket(String bn,String fileName, File file) {
