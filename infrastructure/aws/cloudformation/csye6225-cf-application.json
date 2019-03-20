@@ -329,7 +329,7 @@
                         {
                             "Effect": "Allow",
                             "Action": [
-				"s3:PutObject",
+																"s3:PutObject",
                                 "s3:DeleteObject",
                                 "s3:GetObject",
                                 "s3:PutObjectAcl"
@@ -352,7 +352,8 @@
 								},
 								"Roles":[{"Ref":"CodeDeployEC2ServiceRole"}],
                 "ManagedPolicyName": "CodeDeployEC2S3"
-            }
+            },
+						"DependsOn": "CodeDeployEC2ServiceRole"
 				},        
 				"CodeDeployEC2ServiceRole": {
 					"Type": "AWS::IAM::Role",
