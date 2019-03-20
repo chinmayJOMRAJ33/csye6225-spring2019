@@ -347,7 +347,13 @@ public class MainController {
                         String aid=a.getId();
                         String id=getIdentifier(aid);
                         if(profileName.equalsIgnoreCase(name)){
-                            url=uploadToAWS(file,id,httpServletRequest);
+                            try {
+                                url = uploadToAWS(file, id, httpServletRequest);
+                            }
+                            catch (Exception e){
+                                attachmentRepository.delete(a);
+                                return a;
+                            }
 
                         }
                         else
@@ -381,14 +387,21 @@ public class MainController {
         try {
 
 
-            File file = convertMultiPartFileToFile(multipartFile,req);
+        //    File file = convertMultiPartFileToFile(multipartFile,req);
           //  String fileName = multipartFile .getOriginalFilename();
             String fileName = aid + "_" + multipartFile .getOriginalFilename();
             String endpointUrl=env.getProperty("endpointUrl");
             String bucketName=env.getProperty("bucketName");
             fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
-           amazonClient.uploadFileTos3bucket(bucketName,fileName, file);
-         //  amazonClient.uploadFileTos3bucket(bucketName,fileName, multipartFile);
+
+
+            //  amazonClient.uploadFileTos3bucket(bucketName,fileName, file);
+            try{
+                amazonClient.uploadFileTos3bucket(bucketName,fileName, multipartFile);}
+            catch(Exception e){
+                return "NA";
+            }
+            fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
 
             // file.delete();
         } catch (Exception e) {
@@ -700,7 +713,16 @@ public class MainController {
                                  //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
                                  //  msg.append("Deleted Successfully from local file system");
                                    setResponse(HttpStatus.NO_CONTENT, response, msg);
-                                   uploadToAWS(file,id,httpServletRequest);
+                                   try {
+                                       String url = uploadToAWS(file, id, httpServletRequest);
+                                       a2.setUrl(url);
+                                       attachmentRepository.save(a2);
+                                   }
+                                   catch(Exception e){
+                                       attachmentRepository.delete(a2);
+                                       return a2;
+                                   }
+
                                    return null;
                                }
 
