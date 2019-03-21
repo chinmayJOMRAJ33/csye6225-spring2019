@@ -13,4 +13,3 @@ You need to have:
 3.	An IDE like IntelliJ
 4.	Postman or RestClient for testing
 c.	Build and Deploy instructions for web application.
-hello
