@@ -49,7 +49,6 @@ public class MainController {
     private Environment env;
 
     @Autowired
-    private StatsDClient statsDClient;@Autowired
     private StatsDClient statsDClient;
 
     @Value("${spring.profiles.active}")
@@ -66,19 +65,23 @@ public class MainController {
     public static final Pattern VALID_PWD_REGEX =
              Pattern.compile("^(?=.*\\d)(?=.*[a-z])(?=.*[@#$%])(?=.*[A-Z]).{8,30}$");
 
+    public void logmsg(String msg){
+        try{
+            logger.logInfoEntry(msg);}
+        catch(Exception e){
+
+        }
+    }
+
     @PostMapping(path = "/user/register")
     public @ResponseBody
     JEntity addNewUser(@RequestBody User user, HttpServletResponse response) {
+        statsDClient.incrementCounter("endpoint.user.register.api.post");
         JEntity jEntity = new JEntity();
 
-	statsDClient.incrementCounter("endpoint.user.register.api.post");
 
-	try{
-            logger.logInfoEntry("User/register initiated");}
-        catch(Exception e){
-            jEntity.setMsg("Invalid json");
-            return jEntity;
-        }
+        logmsg("user register initiated");
+
 
         if (validateEmail(user.getEmail()) == false) {
             jEntity.setMsg("Please enter a valid email id");
@@ -87,6 +90,7 @@ public class MainController {
             jEntity.setCode(HttpStatus.FORBIDDEN.value());
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.setHeader("status", HttpStatus.FORBIDDEN.toString());
+            logmsg("User registration Invalid email");
             return jEntity;
         }
 
@@ -97,6 +101,7 @@ public class MainController {
              jEntity.setCode(HttpStatus.EXPECTATION_FAILED.value());
              response.setStatus(HttpStatus.EXPECTATION_FAILED.value());
              response.setHeader("status",HttpStatus.EXPECTATION_FAILED.toString());
+             logmsg("User registration password validation failed");
              return jEntity;
         }
 
@@ -115,6 +120,7 @@ public class MainController {
             jEntity.setCode(HttpStatus.CREATED.value());
             response.setStatus(HttpStatus.CREATED.value());
             response.setHeader("status",HttpStatus.CREATED.toString());
+            logmsg("User registered successfully");
             return jEntity;
 
         } else {
@@ -124,7 +130,7 @@ public class MainController {
             jEntity.setCode(HttpStatus.BAD_REQUEST.value());
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader("status",HttpStatus.BAD_REQUEST.toString());
-
+            logmsg("Account already exists");
             return jEntity;
 
         }
@@ -136,8 +142,9 @@ public class MainController {
     @GetMapping(path = "/")
     public @ResponseBody
     JEntity getCurrentTime(HttpServletRequest httpServletRequest,HttpServletResponse response) {
-
+        statsDClient.incrementCounter("endpoint.api.get");
         JEntity j = new JEntity();
+        logmsg("User login initiated");
         String auth=httpServletRequest.getHeader("Authorization");
         if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
             String base64Credentials = auth.substring("Basic".length()).trim();
@@ -158,7 +165,7 @@ public class MainController {
                     j.setCode(HttpStatus.NOT_ACCEPTABLE.value());
                     response.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
                     response.setHeader("status",HttpStatus.NOT_ACCEPTABLE.toString());
-
+                    logmsg("User email is invalid");
                     return j;
                 } else {
 
@@ -169,6 +176,7 @@ public class MainController {
                         j.setCode(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS.value());
                         response.setStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS.value());
                         response.setHeader("status",HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS.toString());
+                        logmsg("User password is invalid");
                         return j;
                     }
                     Date date=new Date();
@@ -181,7 +189,7 @@ public class MainController {
                     j.setCode(HttpStatus.OK.value());
                     response.setStatus(HttpStatus.OK.value());
                     response.setHeader("status",HttpStatus.OK.toString());
-
+                    logmsg("User logged in successfully");
                     return j;
                 }
             }
@@ -192,7 +200,7 @@ public class MainController {
                 j.setCode(HttpStatus.UNAUTHORIZED.value());
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setHeader("status",HttpStatus.UNAUTHORIZED.toString());
-
+                logmsg("user is not authorized to perform this operation");
                 return j;
             }
 
@@ -204,7 +212,7 @@ public class MainController {
         j.setCode(HttpStatus.NOT_FOUND.value());
         response.setStatus(HttpStatus.NOT_FOUND.value());
         response.setHeader("status",HttpStatus.NOT_FOUND.toString());
-
+        logmsg("user is not authorized to perform this operation");
         return j;
     }
 
@@ -815,6 +823,8 @@ public class MainController {
 
 
     public Note saveNote(Note note,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        statsDClient.incrementCounter("endpoint.note.api.post");
+        logmsg("Note creation initiated");
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
         Note n=null;
@@ -833,6 +843,7 @@ public class MainController {
                 if (u == null) {
                     msg.append("Email is invalid");
                     setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    logmsg("Email is invalid");
                     return n;
 
                 } else {
@@ -841,23 +852,26 @@ public class MainController {
                     if (!BCrypt.checkpw(pwd, u.getpwd())) {
                         msg.append("Password is incorrect");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("Password is invalid");
                         return n;
 
                     }
                     if (note==null){
                         msg.append("Please enter title and content for note");
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        logmsg("Note must have title and content section");
                         return n;
                     }
                     if (note.getContent()==null || note.getTitle()==null){
                         msg.append("Please enter title and content for note");
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        logmsg("Note must have title and content section");
                         return n;
                     }
                     n=createNote(u,note);
                     noteRepository.save(n);
                     setResponse(HttpStatus.CREATED,response);
-
+                    logmsg("Note created successfully");
                     return n;
 
                 }
@@ -866,6 +880,7 @@ public class MainController {
 
                 msg.append("User is not logged in");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("User is not authorized to perform this operation");
                 return n;
             }
 
@@ -873,6 +888,7 @@ public class MainController {
         }
         msg.append("User is not logged in");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        logmsg("User is not authorized to perform this operation");
         return n;
     }
 
@@ -1039,6 +1055,8 @@ public class MainController {
     @PutMapping (path="/note/{id}")
     public @ResponseBody Object upateNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
         //JEntity j = new JEntity();
+        statsDClient.incrementCounter("endpoint.note.id.api.put");
+        logmsg("Note editing initiated");
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
         Note n=null;
@@ -1060,6 +1078,7 @@ public class MainController {
 
                     msg.append("Email is Invalid");
                     setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    logmsg("Email is invalid");
                     return n;
 
 
@@ -1067,6 +1086,7 @@ public class MainController {
                     if (!BCrypt.checkpw(pwd, u.getpwd())) {
                         msg.append("Password is Invalid");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("Password is invalid");
                         return n;
 
                     }
@@ -1081,6 +1101,7 @@ public class MainController {
 
                         msg.append("Note not found");
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        logmsg("No such note available");
                         return n1;
 
                     }
@@ -1091,6 +1112,7 @@ public class MainController {
                             if (note.getContent()==null || note.getTitle()==null){
                                 msg.append("Please enter title and content for note");
                                 setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                                logmsg("Note must have a title and content");
                                 return null;
                             }
 
@@ -1105,6 +1127,7 @@ public class MainController {
 
                             noteRepository.save(n1);
                             setResponse(HttpStatus.NO_CONTENT,response);
+                            logmsg("Note edited and saved successfully");
                             return null;
 
 
@@ -1113,6 +1136,7 @@ public class MainController {
 
                             msg.append("You are not Authorized to use this note");
                             setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                            logmsg("user is not authorized to perform this operation");
                             return n1;
                         }
                     }
@@ -1122,6 +1146,7 @@ public class MainController {
             else{
                 msg.append("You are not Authorized to use this note");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("user is not authorized to perform this operation");
                 return n;
             }
 
@@ -1138,6 +1163,8 @@ public class MainController {
     @DeleteMapping  (path="/note/{id}")
     public @ResponseBody Object deleteNote(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
         //JEntity j = new JEntity();
+        statsDClient.incrementCounter("endpoint.note.id.api.delete");
+        logmsg("Note deletion initiated");
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
         Note n=null;
@@ -1159,6 +1186,8 @@ public class MainController {
 
                     msg.append("Email is Invalid");
                     setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    logmsg("User email is invalid");
+
                     return n;
 
 
@@ -1166,6 +1195,7 @@ public class MainController {
                     if (!BCrypt.checkpw(pwd, u.getpwd())) {
                         msg.append("Password is Invalid");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("User password is invalid");
                         return n;
 
                     }
@@ -1177,6 +1207,7 @@ public class MainController {
 
                         msg.append("Note not found");
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        logmsg("Note does not exists");
                         return n1;
 
                     }
@@ -1190,6 +1221,7 @@ public class MainController {
 
                             noteRepository.delete(n1);
                             setResponse(HttpStatus.NO_CONTENT, response);
+                            logmsg("Note deleted successfully");
                             return null;
                         }
                     }
@@ -1198,6 +1230,7 @@ public class MainController {
             else{
                 msg.append("You are not Authorized to use this note");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("user is not authorized to perform this operation");
                 return n;
             }
 
@@ -1206,6 +1239,7 @@ public class MainController {
         // j.setMsg("User is not logged in!");
         msg.append("You are not Authorized to use this note");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        logmsg("user is not authorized to perform this operation");
         return n;
     }
 
