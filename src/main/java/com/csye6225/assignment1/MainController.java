@@ -242,6 +242,8 @@ public class MainController {
     }
 
     private Set<Attachment> getAttachmentswithNoteIdData(String noteId, HttpServletRequest httpServletRequest, HttpServletResponse response) {
+        statsDClient.incrementCounter("endpoint.note.attachment.api.get");
+        logmsg("Fetching Attachment operation is initiated");
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
         Note note = null;
@@ -263,12 +265,14 @@ public class MainController {
 
                     msg.append("Email is invalid");
                     setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    logmsg("Email is invalid");
                     return attachments;
 
                 } else {
                     if (!BCrypt.checkpw(pwd, user1.getpwd())) {
                         msg.append("Password is incorrect");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("Password is incorrect");
                         return attachments;
                     }
                     note = noteRepository.findById(noteId);
@@ -277,18 +281,21 @@ public class MainController {
                     if (note == null){
                         msg.append("Note not found");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("Note not found");
                         return attachments;
                     }
                     else {
                         if(note.getUser().getId()!=user1.getId()){
                             msg.append("User does not have access to this note");
                             setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                            logmsg("User does not have access to this note");
                             return attachments;
                         }
                         attachments = note.getAttachments();
                         if(attachments == null) {
                             msg.append("No attachments for this note");
                             setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                            logmsg("No attachments for this note");
                             return attachments;
                         } else {
                             setResponse(HttpStatus.OK,response);
@@ -301,6 +308,7 @@ public class MainController {
 
                 msg.append("User is not logged in");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("User is not logged in");
                 return attachments;
             }
 
@@ -308,6 +316,7 @@ public class MainController {
         }
         msg.append("User is not logged in");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        logmsg("User is not logged in");
         return attachments;
 
     }
