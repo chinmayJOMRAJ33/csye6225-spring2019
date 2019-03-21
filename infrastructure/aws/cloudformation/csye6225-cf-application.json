@@ -163,8 +163,11 @@
 									
 								  "chmod +x /opt/tomcat/bin/setenv.sh",
 								  "systemctl daemon-reload", 
-									"systemctl enable tomcat.service",
-									"systemctl start tomcat.service"]
+								  "systemctl enable tomcat.service",
+								  "systemctl start tomcat.service",
+								  "sudo chmod -R 777 /opt/aws",
+								  "sudo chmod -R 777 /opt/codedeploy-agent"
+									]
 								   ]
 								   }
 								}
@@ -329,7 +332,7 @@
                         {
                             "Effect": "Allow",
                             "Action": [
-				"s3:PutObject",
+																"s3:PutObject",
                                 "s3:DeleteObject",
                                 "s3:GetObject",
                                 "s3:PutObjectAcl"
@@ -352,7 +355,8 @@
 								},
 								"Roles":[{"Ref":"CodeDeployEC2ServiceRole"}],
                 "ManagedPolicyName": "CodeDeployEC2S3"
-            }
+            },
+						"DependsOn": "CodeDeployEC2ServiceRole"
 				},        
 				"CodeDeployEC2ServiceRole": {
 					"Type": "AWS::IAM::Role",
@@ -368,7 +372,11 @@
 									 "Action": [ "sts:AssumeRole" ]
 								} ]
 						 },
-						 "Path": "/"
+						 "Path": "/",
+						"ManagedPolicyArns": [
+						        "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy", 
+							"arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+							]
 						 }
 			 
 			 }, 
