@@ -120,17 +120,17 @@ public class MainController {
             jEntity.setCode(HttpStatus.CREATED.value());
             response.setStatus(HttpStatus.CREATED.value());
             response.setHeader("status",HttpStatus.CREATED.toString());
-            logmsg("User registered successfully");
+            logmsg("User with email " +user1.getEmail() +" registered successfully");
             return jEntity;
 
         } else {
-            jEntity.setMsg("User account already exist!");
+            jEntity.setMsg("User account with email already exist!");
 
             jEntity.setStatuscode(HttpStatus.BAD_REQUEST);
             jEntity.setCode(HttpStatus.BAD_REQUEST.value());
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             response.setHeader("status",HttpStatus.BAD_REQUEST.toString());
-            logmsg("Account already exists");
+            logmsg("User with email "+user1.getEmail() +" already exists");
             return jEntity;
 
         }
@@ -189,7 +189,7 @@ public class MainController {
                     j.setCode(HttpStatus.OK.value());
                     response.setStatus(HttpStatus.OK.value());
                     response.setHeader("status",HttpStatus.OK.toString());
-                    logmsg("User logged in successfully");
+                    logmsg("User "+u.getEmail()+" logged in successfully");
                     return j;
                 }
             }
@@ -376,7 +376,7 @@ public class MainController {
                     if (note == null) {
                         msg.append("No such Note available");
                         setResponse(HttpStatus.UNAUTHORIZED, response, msg);
-                        logmsg("Note is not available");
+                        logmsg("Note with id "+noteId+" is not available");
                         return a;
                     }
                     else {
@@ -405,7 +405,7 @@ public class MainController {
                         System.out.println(url);
                         a.setUrl(url);
                         attachmentRepository.save(a);
-                        logmsg("Attachment is saved successfully");
+                        logmsg("Attachment id "+a.getId()+" is saved successfully");
 
                         return a;
                     }
@@ -559,7 +559,7 @@ public class MainController {
 
                         msg.append("Note not found");
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
-                        logmsg("Note not found");
+                        logmsg("Note with id "+noteId+" not found");
                         return attachment;
 
                     }
@@ -579,9 +579,9 @@ public class MainController {
                             {
 
 
-                                msg.append("Note not found");
+                                msg.append("attachemnt not found");
                                 setResponse(HttpStatus.BAD_REQUEST,response,msg);
-                                logmsg("Note not found");
+                                logmsg("attachment with id "+idAttachments +" not found");
                                 return attachment;
 
                             }
@@ -589,7 +589,7 @@ public class MainController {
                                 if (!(attachmentRepository.findById(idAttachments).getNote() == note)|| !(note.getUser().getId() == user1.getId())){
                                     msg.append("This attachment is not entitled to the given note");
                                     setResponse(HttpStatus.UNAUTHORIZED, response, msg);
-                                    logmsg("This attachment is not entitled to the given note");
+                                    logmsg("This attachment is not entitled to the given noteid "+noteId);
                                     return attachmentRepository.findById(idAttachments);
 
                                 }
@@ -611,6 +611,7 @@ public class MainController {
                                         String fo = fileName.substring(fileName.lastIndexOf("/") + 1);
                                         System.out.println(fo);
                                         amazonClient.deleteFileFromS3Bucket(bucketName, fo);
+                                        logmsg("Deleting attachment with id "+idAttachments);
                                         attachmentRepository.delete(attachment);
                                         //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
                                         //  msg.append("Deleted Successfully from local file system");
@@ -744,7 +745,7 @@ public class MainController {
                     if (note == null) {
                         msg.append("No such Note available");
                         setResponse(HttpStatus.UNAUTHORIZED, response, msg);
-                        logmsg("note with given id is not available");
+                        logmsg("note with given id "+noteId+" is not available");
                         return a;
                     }
 
@@ -758,7 +759,7 @@ public class MainController {
                          //   !(attachmentRepository.findById(idAttachments).getNote() == note)|| !(note.getUser().getId() == user1.getId())
                                 msg.append("This attachment is not entitled to the given note");
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
-                                   logmsg("The attachment is not entitled for the given note");
+                                   logmsg("The attachment "+attachmentId+" is not entitled for the given note");
                                 return attachmentRepository.findById(attachmentId);
 
 
@@ -786,7 +787,7 @@ public class MainController {
                                        logmsg("attachment updation failed");
                                        return a2;
                                    }
-                                   logmsg("attachment is edited and saved successfully");
+                                   logmsg("attachment "+attachmentId+" is edited and saved successfully");
                                    return null;
                                }
 
@@ -915,7 +916,7 @@ public class MainController {
                     n=createNote(u,note);
                     noteRepository.save(n);
                     setResponse(HttpStatus.CREATED,response);
-                    logmsg("Note created successfully");
+                    logmsg("Note "+n.getId()+" created successfully");
                     return n;
 
                 }
@@ -1008,7 +1009,7 @@ public class MainController {
                     if (n==null){
                         msg.append("Note could not be found. Please enter a valid note id");
                         setResponse(HttpStatus.NOT_FOUND,response,msg);
-                        logmsg("note id is invalid");
+                        logmsg("note id "+id+" is invalid");
                         return n;
                     }
 
@@ -1020,7 +1021,7 @@ public class MainController {
                     }
 
                     setResponse(HttpStatus.OK,response);
-                    logmsg("note is fetched successfully by id");
+                    logmsg("note + "+id +" is fetched successfully");
                     return n;
 
                 }
@@ -1080,19 +1081,19 @@ public class MainController {
                     if (n == null){
                         msg.append("Notes could not be found for this user");
                         setResponse(HttpStatus.NOT_FOUND,response,msg);
-                        logmsg("note could not be found for this user");
+                        logmsg("note could not be found for user "+u.getEmail());
                         return n;
                     }
                     if (n.isEmpty()){
                         msg.append("Notes could not be found for this user");
                         setResponse(HttpStatus.NOT_FOUND,response,msg);
-                        logmsg("notes could not be found for this user");
+                        logmsg("notes could not be found for this user "+u.getEmail());
                         return null;
                     }
 //
 
                     setResponse(HttpStatus.OK,response);
-                    logmsg("fetched all notes successfully");
+                    logmsg("fetched all notes successfully for "+u.getEmail());
                     return n;
 
                 }
@@ -1163,7 +1164,7 @@ public class MainController {
 
                         msg.append("Note not found");
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
-                        logmsg("No such note available");
+                        logmsg("No such note available with id "+id);
                         return n1;
 
                     }
@@ -1189,7 +1190,7 @@ public class MainController {
 
                             noteRepository.save(n1);
                             setResponse(HttpStatus.NO_CONTENT,response);
-                            logmsg("Note edited and saved successfully");
+                            logmsg("Note with id "+id+" edited and saved successfully");
                             return null;
 
 
@@ -1269,7 +1270,7 @@ public class MainController {
 
                         msg.append("Note not found");
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
-                        logmsg("Note does not exists");
+                        logmsg("Note with id " +id+" does not exists");
                         return n1;
 
                     }
@@ -1283,7 +1284,7 @@ public class MainController {
 
                             noteRepository.delete(n1);
                             setResponse(HttpStatus.NO_CONTENT, response);
-                            logmsg("Note deleted successfully");
+                            logmsg("Note "+id+" deleted successfully");
                             return null;
                         }
                     }
