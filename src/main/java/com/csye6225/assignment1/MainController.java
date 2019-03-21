@@ -313,6 +313,8 @@ public class MainController {
     }
 
     public Attachment saveFile(MultipartFile file,String noteId,HttpServletRequest httpServletRequest, HttpServletResponse response){
+        statsDClient.incrementCounter("endpoint.note.attachment.api.post");
+        logmsg("Save Attachment operation is initiated");
         String auth = httpServletRequest.getHeader("Authorization");
         StringBuffer msg = new StringBuffer();
         Note note = null;
@@ -323,11 +325,13 @@ public class MainController {
         if(file.isEmpty()){
             msg.append("Please select a file");
             setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+            logmsg("The file is not selected");
             return a;
         }
         if(file.getSize()>perSize){
             msg.append("File size is larger than 100 mb");
             setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+            logmsg("The file size is larger than 100 mb");
             return a;
         }
    // httpServletRequest.getServletContext()
@@ -348,12 +352,14 @@ public class MainController {
 
                     msg.append("Email is invalid");
                     setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                    logmsg("Email is not valid");
                     return a;
 
                 } else {
                     if (!BCrypt.checkpw(pwd, user.getpwd())) {
                         msg.append("Password is incorrect");
                         setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                        logmsg("Password is incorrect");
                         return a;
                     }
                     note = noteRepository.findById(noteId);
@@ -361,6 +367,7 @@ public class MainController {
                     if (note == null) {
                         msg.append("No such Note available");
                         setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                        logmsg("Note is not available");
                         return a;
                     }
                     else {
@@ -376,6 +383,7 @@ public class MainController {
                             }
                             catch (Exception e){
                                 attachmentRepository.delete(a);
+                                logmsg("attachment creation failed ");
                                 return a;
                             }
 
@@ -388,6 +396,7 @@ public class MainController {
                         System.out.println(url);
                         a.setUrl(url);
                         attachmentRepository.save(a);
+                        logmsg("Attachment is saved successfully");
 
                         return a;
                     }
@@ -396,12 +405,14 @@ public class MainController {
 
                 msg.append("User is not logged in");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("User is not authorized to perform this operation");
                 return a;
             }
 
         }
         msg.append("User is not logged in");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        logmsg("user is not authorized to perform this operation");
         return a;
     }
 
@@ -658,6 +669,8 @@ public class MainController {
 
     public Attachment editFile(MultipartFile file,String noteId,String attachmentId,HttpServletRequest httpServletRequest, HttpServletResponse response){
 //        String profileName="default";
+        statsDClient.incrementCounter("endpoint.note.attachment.api.put");
+        logmsg("edit operation for attachment initiated");
         String auth = httpServletRequest.getHeader("Authorization");
         StringBuffer msg = new StringBuffer();
         Note note = null;
@@ -670,11 +683,14 @@ public class MainController {
         if(file.isEmpty()){
             msg.append("Please select a file");
             setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+            logmsg("File is not selected");
             return a;
         }
         if(file.getSize()>perSize){
             msg.append("File size is larger than 100 mb");
             setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+            logmsg("File size is larger than 100mb");
+
             return a;
         }
 
@@ -694,12 +710,14 @@ public class MainController {
 
                     msg.append("Email is invalid");
                     setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                    logmsg("email is invalid");
                     return a;
 
                 } else {
                     if (!BCrypt.checkpw(pwd, user.getpwd())) {
                         msg.append("Password is incorrect");
                         setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                        logmsg("password is incorrect");
                         return a;
                     }
                     note = noteRepository.findById(noteId);
@@ -707,6 +725,7 @@ public class MainController {
                     if (note == null) {
                         msg.append("No such Note available");
                         setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                        logmsg("note with given id is not available");
                         return a;
                     }
 
@@ -720,6 +739,7 @@ public class MainController {
                          //   !(attachmentRepository.findById(idAttachments).getNote() == note)|| !(note.getUser().getId() == user1.getId())
                                 msg.append("This attachment is not entitled to the given note");
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                   logmsg("The attachment is not entitled for the given note");
                                 return attachmentRepository.findById(attachmentId);
 
 
@@ -744,9 +764,10 @@ public class MainController {
                                    }
                                    catch(Exception e){
                                        attachmentRepository.delete(a2);
+                                       logmsg("attachment updation failed");
                                        return a2;
                                    }
-
+                                   logmsg("attachment is edited and saved successfully");
                                    return null;
                                }
 
@@ -759,6 +780,7 @@ public class MainController {
                             {
                                 msg.append("No such attachment available");
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                logmsg("attachment is not available");
                                 return a1;
 
 
@@ -773,6 +795,7 @@ public class MainController {
                             else if (!(a1.getNote().getId() == note.getId())||!(note.getUser().getId() == user.getId())){
                                 msg.append("This attachment is not entitled to the given note");
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                logmsg("The attachment is not entitled for the given note");
                                 return attachmentRepository.findById(attachmentId);
 
 
@@ -798,7 +821,7 @@ public class MainController {
                                 attachmentRepository.save(a1);
                               //  setResponse(resp);
                                 setResponse(HttpStatus.NO_CONTENT, response, msg);
-
+                                logmsg("The attachment is edited successfully");
                                 // a = createAttachment(file, note);
                                 //   attachmentRepository.save(a1);
                                 return null;
@@ -811,12 +834,14 @@ public class MainController {
 
                 msg.append("User is not logged in");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("The user is not authorized to perform this operation");
                 return a;
             }
 
         }
         msg.append("User is not logged in");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        logmsg("User is not authorized to perform this operation");
         return a;
     }
 
@@ -925,6 +950,8 @@ public class MainController {
 
     }
     public Note getNoteWithIdData(String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
+        statsDClient.incrementCounter("endpoint.note.id.api.get");
+        logmsg("fetching notes with is initiated");
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
         Note n=null;
@@ -944,6 +971,7 @@ public class MainController {
 
                     msg.append("Email is invalid");
                     setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    logmsg("email is invalid");
                     return n;
 
                 } else {
@@ -952,6 +980,7 @@ public class MainController {
                     if (!BCrypt.checkpw(pwd, u.getpwd())) {
                         msg.append("Password is incorrect");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("password is invalid");
                         return n;
 
                     }
@@ -960,16 +989,19 @@ public class MainController {
                     if (n==null){
                         msg.append("Note could not be found. Please enter a valid note id");
                         setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        logmsg("note id is invalid");
                         return n;
                     }
 
                     if(n.getUser().getId()!=u.getId()){
                         msg.append("User is not authorized to use this note");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("User is not authorized to use this note");
                         return null;
                     }
 
                     setResponse(HttpStatus.OK,response);
+                    logmsg("note is fetched successfully by id");
                     return n;
 
                 }
@@ -978,6 +1010,7 @@ public class MainController {
 
                 msg.append("User is not logged in");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("user is not authorized to perform this operation");
                 return n;
             }
 
@@ -985,10 +1018,13 @@ public class MainController {
         }
         msg.append("User is not logged in");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        logmsg("user is not authorized to perform this operation");
         return n;
     }
 
     public Set<Note> fetchAllNotes(HttpServletRequest httpServletRequest, HttpServletResponse response){
+        statsDClient.incrementCounter("endpoint.note.api.get");
+        logmsg("fetching all notes operation initiated");
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
         Set<Note> n=null;
@@ -1009,12 +1045,14 @@ public class MainController {
 
                     msg.append("Email is invalid");
                     setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    logmsg("email is invalid");
                     return n;
 
                 } else {
                     if (!BCrypt.checkpw(pwd, u.getpwd())) {
                         msg.append("Password is incorrect");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("password is invalid");
                         return n;
                     }
 
@@ -1023,16 +1061,19 @@ public class MainController {
                     if (n == null){
                         msg.append("Notes could not be found for this user");
                         setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        logmsg("note could not be found for this user");
                         return n;
                     }
                     if (n.isEmpty()){
                         msg.append("Notes could not be found for this user");
                         setResponse(HttpStatus.NOT_FOUND,response,msg);
+                        logmsg("notes could not be found for this user");
                         return null;
                     }
 //
 
                     setResponse(HttpStatus.OK,response);
+                    logmsg("fetched all notes successfully");
                     return n;
 
                 }
@@ -1041,6 +1082,7 @@ public class MainController {
 
                 msg.append("User is not logged in");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("user is not authorized to perfoem this operation");
                 return n;
             }
 
@@ -1048,6 +1090,7 @@ public class MainController {
         }
         msg.append("User is not logged in");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        logmsg("user is not authorized to perform this operation");
         return n;
     }
 
