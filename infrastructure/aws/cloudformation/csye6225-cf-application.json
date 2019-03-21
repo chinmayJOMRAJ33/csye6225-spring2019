@@ -369,7 +369,11 @@
 									 "Action": [ "sts:AssumeRole" ]
 								} ]
 						 },
-						 "Path": "/"
+						 "Path": "/",
+						"ManagedPolicyArns": [
+						        "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy", 
+							"arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+							]
 						 }
 			 
 			 }, 
