@@ -11,11 +11,13 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.util.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -77,10 +79,31 @@ private void initializeAmazon(){
 //    }
 public void uploadFileTos3bucket(String bn,String fileName, MultipartFile file) throws IOException {
 
-    s3client.putObject(bn,fileName,file.getInputStream(),new ObjectMetadata());
+    // s3client.putObject(bn,fileName,file.getInputStream(),new ObjectMetadata());
+    ObjectMetadata objMeta = new ObjectMetadata();
 
-//    s3client.putObject(new PutObjectRequest(bn, fileName, ile)
-//            .withCannedAcl(CannedAccessControlList.PublicRead));
+    //objMeta.setContentType("image");
+
+
+    byte[] bytes = IOUtils.toByteArray(file.getInputStream());
+    objMeta.setContentLength(bytes.length);
+    objMeta.setContentType(file.getContentType());
+    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+    PutObjectRequest putObjectRequest = new PutObjectRequest(bn, fileName, byteArrayInputStream, objMeta);
+    //client.putObject(putObjectRequest);
+
+
+    try {
+        //  this.s3client.putObject(new PutObjectRequest(bn, fileName, file.getInputStream(), objMeta)
+        //        .withCannedAcl(CannedAccessControlList.PublicRead));
+
+        this.s3client.putObject(putObjectRequest);
+
+    }
+    catch(Exception e)
+    {
+
+    }
 }
 
 
