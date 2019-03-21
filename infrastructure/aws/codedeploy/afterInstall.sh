@@ -1,7 +1,7 @@
 #!/bin/bash
   
 sudo systemctl stop tomcat.service
-sudo systemctl stop amazon-cloudwatch-agent.service
+#sudo systemctl stop amazon-cloudwatch-agent.service
 
 sudo rm -rf /opt/tomcat/webapps/docs  /opt/tomcat/webapps/examples /opt/tomcat/webapps/host-manager  /opt/tomcat/webapps/manager /opt/tomcat/webapps/ROOT
 
