@@ -166,9 +166,7 @@
 								  "systemctl enable tomcat.service",
 								  "systemctl start tomcat.service",
 								  "sudo chmod -R 777 /opt/aws",
-								  "sudo chmod -R 777 /opt/codedeploy-agent",
-								  "sudo systemctl enable amazon-cloudwatch-agent.service",
-								  "sudo systemctl start amazon-cloudwatch-agent.service"
+								  "sudo chmod -R 777 /opt/codedeploy-agent"
 									]
 								   ]
 								   }
