@@ -517,7 +517,8 @@ public class MainController {
     }
 
     private Object deleteAttachmentWithNoteId(String noteId, String idAttachments, HttpServletRequest httpServletRequest, HttpServletResponse response) {
-
+        statsDClient.incrementCounter("endpoint.note.attachment.api.delete");
+        logmsg("Deleting Attachment operation is initiated");
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
         Note note = null;
@@ -539,6 +540,7 @@ public class MainController {
 
                     msg.append("Email is Invalid");
                     setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                    logmsg("Email is Invalid");
                     return attachment;
 
 
@@ -546,6 +548,7 @@ public class MainController {
                     if (!BCrypt.checkpw(pwd, user1.getpwd())) {
                         msg.append("Password is Invalid");
                         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                        logmsg("Password is Invalid");
                         return attachment;
 
                     }
@@ -556,6 +559,7 @@ public class MainController {
 
                         msg.append("Note not found");
                         setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                        logmsg("Note not found");
                         return attachment;
 
                     }
@@ -565,6 +569,7 @@ public class MainController {
                         {
                             msg.append("attachment not found");
                             setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                            logmsg("attachment not found");
                             return attachment;
                         }
                         else
@@ -576,6 +581,7 @@ public class MainController {
 
                                 msg.append("Note not found");
                                 setResponse(HttpStatus.BAD_REQUEST,response,msg);
+                                logmsg("Note not found");
                                 return attachment;
 
                             }
@@ -583,6 +589,7 @@ public class MainController {
                                 if (!(attachmentRepository.findById(idAttachments).getNote() == note)|| !(note.getUser().getId() == user1.getId())){
                                     msg.append("This attachment is not entitled to the given note");
                                     setResponse(HttpStatus.UNAUTHORIZED, response, msg);
+                                    logmsg("This attachment is not entitled to the given note");
                                     return attachmentRepository.findById(idAttachments);
 
                                 }
@@ -626,6 +633,7 @@ public class MainController {
                                     }
                                     msg.append("Deleted Successfully from local file system");
                                     setResponse(HttpStatus.NO_CONTENT, response, msg);
+                                    logmsg("Deleted Successfully from local file system");
                                     return null;
                                 }
 
@@ -637,6 +645,7 @@ public class MainController {
             else{
                 msg.append("You are not Authorized to use this note");
                 setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+                logmsg("You are not Authorized to use this note");
                 return attachment;
             }
 
@@ -645,6 +654,7 @@ public class MainController {
         // j.setMsg("User is not logged in!");
         msg.append("You are not Authorized to use this note");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
+        logmsg("You are not Authorized to use this note");
         return attachment;
     }
 
