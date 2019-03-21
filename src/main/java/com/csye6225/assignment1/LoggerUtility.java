@@ -13,7 +13,7 @@ public class LoggerUtility {
 
 
 
-    String logLocation="/opt/logs/csye6225.log";
+    String logLocation="/opt/tomcat/logs/csye6225.log";
 
 
     public void logInfoEntry(String msg) throws Exception{

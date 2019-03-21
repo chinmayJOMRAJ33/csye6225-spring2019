@@ -1,6 +1,7 @@
 package com.csye6225.assignment1;
 
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.timgroup.statsd.StatsDClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -47,8 +48,14 @@ public class MainController {
     @Autowired
     private Environment env;
 
+    @Autowired
+    private StatsDClient statsDClient;@Autowired
+    private StatsDClient statsDClient;
+
     @Value("${spring.profiles.active}")
     private String profileName;
+
+    LoggerUtility logger=new LoggerUtility();
 
     public String name="dev";
 
@@ -63,6 +70,15 @@ public class MainController {
     public @ResponseBody
     JEntity addNewUser(@RequestBody User user, HttpServletResponse response) {
         JEntity jEntity = new JEntity();
+
+	statsDClient.incrementCounter("endpoint.user.register.api.post");
+
+	try{
+            logger.logInfoEntry("User/register initiated");}
+        catch(Exception e){
+            jEntity.setMsg("Invalid json");
+            return jEntity;
+        }
 
         if (validateEmail(user.getEmail()) == false) {
             jEntity.setMsg("Please enter a valid email id");
