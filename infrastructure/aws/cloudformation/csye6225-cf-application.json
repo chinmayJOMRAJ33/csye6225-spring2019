@@ -60,6 +60,16 @@
         "TagValue": {
             "Type": "String",
             "Default": "csye6225-EC2"
+        },
+	"mySNSTopicName": {
+            "Default": "MySNS",
+            "Description": "SNS Topic name",
+            "Type": "String"
+        },
+	"FromEmail": {
+            "Default": "shah.heta@husky.neu.edu",
+            "Description": "from email id",
+            "Type": "String"
         }
     },
     "Resources": {
@@ -209,6 +219,18 @@
                                             "sudo echo \"JAVA_OPTS=\\\"\\${JAVA_OPTS} -DbucketName=",
                                             {
                                                 "Ref": "S3Bucket"
+                                            },
+                                            "\\\"\" >> /opt/tomcat/bin/setenv.sh "
+                                        ]
+                                    ]
+                                },
+				{
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "sudo echo \"JAVA_OPTS=\\\"\\${JAVA_OPTS} -DsnsName=",
+                                            {
+                                                "Ref": "MySNS"
                                             },
                                             "\\\"\" >> /opt/tomcat/bin/setenv.sh "
                                         ]
@@ -533,7 +555,7 @@
 	"MyLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-                "FunctionName": "myLambda",
+                "FunctionName": "MyLambdaFunction",
                 "Handler": "lambdaApp.Email",
                 "Code": {
                     "S3Bucket": {
@@ -562,7 +584,9 @@
             "Type": "AWS::SNS::Topic",
             "DependsOn": "MyLambdaFunction",
             "Properties": {
-                "TopicName": "MySNS",
+                "TopicName": { 
+			"Ref": "mySNSTopicName" 
+		},
                 "Subscription": [
                     {
                         "Endpoint": {
