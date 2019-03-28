@@ -568,7 +568,7 @@
                 },
                 "Description": "lambda to host webapp",
                 "Environment": {
-                    "Variables": {"DOMAIN_NAME":{"Fn::Join":["",["https://www.",{"Ref": "Domain" },".com" ]]}, "FROM_EMAIL":{"Fn::Join":["",["no-reply@test.",{"Ref": "Domain" },".com" ]]}, "TABLENAME":"csye6225", "TTL":"20"} 
+                    "Variables": {"DOMAIN_NAME":{"Fn::Join":["",["https://www.",{"Ref": "Domain" },"com" ]]}, "FROM_EMAIL":{"Fn::Join":["",["no-reply@test.",{"Ref": "Domain" },"com" ]]}, "TABLENAME":"csye6225", "TTL":"20"} 
                 },
                 "Runtime": "java8",
                 "Timeout": 100,
