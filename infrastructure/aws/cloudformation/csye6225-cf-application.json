@@ -577,4 +577,23 @@
                 "DisplayName": "MySNS"
             }
         },
+        "LambdaResourcePolicy": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "MyLambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "Principal": "sns.amazonaws.com",
+                "Action": "lambda:InvokeFunction",
+                "SourceArn": {
+                    	"Ref": "MySNS"
+                    
+                }
+            }
+        }
+    }
+}
         
