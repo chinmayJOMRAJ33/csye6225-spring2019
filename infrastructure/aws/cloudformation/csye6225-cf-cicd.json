@@ -204,4 +204,19 @@
             }
         }
     },
+    "Outputs": {
+        "LambdaExecutionRoleARN": {
+            "Description": "Exporting the lambda execution role for lambda function in application json",
+            "Value": {
+                "Fn::GetAtt": [
+                    "LambdaExecutionRole",
+                    "Arn"
+                ]
+            },
+            "Export": {
+                "Name": "LambdaExecutionRoleARN"
+            }
+        }
+  }
+}
     
