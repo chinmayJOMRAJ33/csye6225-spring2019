@@ -1,6 +1,12 @@
 package com.csye6225.assignment1;
 
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
+import com.amazonaws.services.sns.model.ListTopicsResult;
+import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.PublishResult;
+import com.amazonaws.services.sns.model.Topic;
 import com.timgroup.statsd.StatsDClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1278,14 +1284,47 @@ public class MainController {
 
                         if (n1.getUser().getId() == u.getId()) {
 
-                            Instant ins = Instant.now();
 
+
+
+                            Set<Attachment>at = n1.getAttachments();
+
+                            for(Attachment a : at)
+                            {
+
+
+
+                                String bucketName = env.getProperty("bucketname");
+
+
+                                String fileName = a.getUrl();
+                                String aid=a.getId();
+                                String id1=getIdentifier(aid);
+                                // amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
+                                String fo = fileName.substring(fileName.lastIndexOf("/") + 1);
+                                System.out.println(fo);
+                                amazonClient.deleteFileFromS3Bucket(bucketName, fo);
+                                logmsg("Deleting attachment with id "+aid);
+
+
+                                Instant ins = Instant.now();
+                                n1.setUpdated_on(ins.toString());
+                                attachmentRepository.delete(a);
+                                File destFile = new File(a.getUrl());
+                                if (destFile.exists())
+                                    destFile.delete();
+
+
+                            }
+                            Instant ins = Instant.now();
+//
                             n1.setUpdated_on(ins.toString());
 
                             noteRepository.delete(n1);
                             setResponse(HttpStatus.NO_CONTENT, response);
                             logmsg("Note "+id+" deleted successfully");
                             return null;
+
                         }
                     }
                 }
@@ -1306,6 +1345,77 @@ public class MainController {
         return n;
     }
 
+
+    @PostMapping(path = "/reset")
+    public @ResponseBody
+    JEntity resetPwd(@RequestBody User user, HttpServletResponse response) {
+        statsDClient.incrementCounter("endpoint.reset.api.post");
+        JEntity jEntity = new JEntity();
+
+        AmazonSNSClient snsClient = (AmazonSNSClient) AmazonSNSClientBuilder.standard().withRegion("us-east-1").build();
+
+
+        logmsg("user register initiated");
+
+        if (user==null || user.getEmail()==null || user.getEmail().isEmpty()){
+            jEntity.setStatuscode(HttpStatus.BAD_REQUEST);
+            jEntity.setCode(HttpStatus.BAD_REQUEST.value());
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            response.setHeader("status",HttpStatus.BAD_REQUEST.toString());
+            logmsg("User email is invalid");
+            return jEntity;
+        }
+
+        User user1 = userRepository.findByEmail(user.getEmail());
+        if (user1 == null) {
+
+            jEntity.setMsg("User account with email doesnt exist!");
+
+            jEntity.setStatuscode(HttpStatus.BAD_REQUEST);
+            jEntity.setCode(HttpStatus.BAD_REQUEST.value());
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            response.setHeader("status",HttpStatus.BAD_REQUEST.toString());
+            logmsg("User with email "+user.getEmail() +" doesn't exists");
+            return jEntity;
+
+        } else {
+
+
+
+            logmsg("Reset API Logging");
+            String msg = user.getEmail();
+            String snsName = env.getProperty("snsName");
+
+            ListTopicsResult topicsResult = snsClient.listTopics();
+            List<Topic> topicList = topicsResult.getTopics();
+            Topic reset = null;//= topicList.get(topicList.indexOf("reset"));
+            for(Topic topic: topicList) {
+                if (topic.getTopicArn().contains(snsName))
+                    reset = topic;
+            }
+            if(reset != null) {
+                PublishRequest publishRequest = new PublishRequest(reset.getTopicArn(), msg);
+                PublishResult publishResult = snsClient.publish(publishRequest);
+//print MessageId of message published to SNS topic
+                System.out.println("MessageId - " + publishResult.getMessageId());
+            }
+            else{
+                System.out.println("Topic not found");
+            }
+        }
+
+
+        jEntity.setMsg("Password reset link sent successfully!");
+        jEntity.setStatuscode(HttpStatus.CREATED);
+        jEntity.setCode(HttpStatus.CREATED.value());
+        response.setStatus(HttpStatus.CREATED.value());
+        response.setHeader("status",HttpStatus.CREATED.toString());
+
+        logmsg("User with email " +user1.getEmail() +" notified with password registration");
+        return jEntity;
+
+    }
+
     public static boolean validateEmail(String emailStr) {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(emailStr);
         return matcher.find();
@@ -1314,6 +1424,7 @@ public class MainController {
         Matcher matcher = VALID_PWD_REGEX.matcher(pwdStr);
         return matcher.find();
     }
+
 
 
 
