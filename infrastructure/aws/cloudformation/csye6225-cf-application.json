@@ -530,4 +530,51 @@
             },
             "DependsOn": "CodeDeployEC2ServiceRole"
         },
+	"MyLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "myLambda",
+                "Handler": "lambdaApp.Email",
+                "Code": {
+                    "S3Bucket": {
+                        "Ref": "S3CodeBucket"
+                    },
+                    "S3Key": "lambdaEmailFunction.zip"
+                },
+                "Role": {
+                    "Fn::ImportValue": "LambdaExecutionRoleARN"
+                },
+                "Description": "lambda to host webapp",
+                "Environment": {
+                    "Variables": {
+                        "DOMAIN_NAME": "https://www.csye6225-spring2019-shahheta.me",
+                        "FROM_EMAIL": "shah.heta@husky.neu.edu",
+                        "TABLENAME": "csye6225",
+                        "TTL": "5"
+                    }
+                },
+                "Runtime": "java8",
+                "Timeout": 30,
+                "MemorySize": 256
+            }
+        },
+        "MySNS": {
+            "Type": "AWS::SNS::Topic",
+            "DependsOn": "MyLambdaFunction",
+            "Properties": {
+                "TopicName": "MySNS",
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Fn::GetAtt": [
+                                "MyLambdaFunction",
+                                "Arn"
+                            ]
+                        },
+                        "Protocol": "lambda"
+                    }
+                ],
+                "DisplayName": "MySNS"
+            }
+        },
         
