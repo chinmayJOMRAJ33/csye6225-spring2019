@@ -203,6 +203,34 @@
                 ]
             }
         }
+        ,
+        "LambdaExecutionCircleCI":{
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "ManagedPolicyName": "LambdaExecutionCircleCI",
+                "Description": "Upload to S3",
+                "Path": "/",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "ConfigureFunctions",
+                            "Effect": "Allow",
+                            "Action": [
+                                "lambda:CreateFunction",
+                                "lambda:UpdateFunctionConfiguration"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Users": [
+                    {
+                        "Ref": "CircleCIUser"
+                    }
+                ]
+            } 
+        }
     },
     "Outputs": {
         "LambdaExecutionRoleARN": {
