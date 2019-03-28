@@ -1278,14 +1278,47 @@ public class MainController {
 
                         if (n1.getUser().getId() == u.getId()) {
 
-                            Instant ins = Instant.now();
 
+
+
+                            Set<Attachment>at = n1.getAttachments();
+
+                            for(Attachment a : at)
+                            {
+
+
+
+                                String bucketName = env.getProperty("bucketname");
+
+
+                                String fileName = a.getUrl();
+                                String aid=a.getId();
+                                String id1=getIdentifier(aid);
+                                // amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
+                                String fo = fileName.substring(fileName.lastIndexOf("/") + 1);
+                                System.out.println(fo);
+                                amazonClient.deleteFileFromS3Bucket(bucketName, fo);
+                                logmsg("Deleting attachment with id "+aid);
+
+
+                                Instant ins = Instant.now();
+                                n1.setUpdated_on(ins.toString());
+                                attachmentRepository.delete(a);
+                                File destFile = new File(a.getUrl());
+                                if (destFile.exists())
+                                    destFile.delete();
+
+
+                            }
+                            Instant ins = Instant.now();
+//
                             n1.setUpdated_on(ins.toString());
 
                             noteRepository.delete(n1);
                             setResponse(HttpStatus.NO_CONTENT, response);
                             logmsg("Note "+id+" deleted successfully");
                             return null;
+
                         }
                     }
                 }
