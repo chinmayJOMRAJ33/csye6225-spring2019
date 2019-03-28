@@ -216,7 +216,19 @@
             "Export": {
                 "Name": "LambdaExecutionRoleARN"
             }
+        },
+	"CodeDeployServiceRoleArn": {
+            "Description": "Get the service role arn",
+            "Value": {
+                "Fn::GetAtt": [
+                    "CodeDeployServiceRole",
+                    "Arn"
+                ]
+            },
+            "Export": {
+                "Name": "CodeDeployServiceRoleArn"
+            }
         }
-  }
+   }
 }
     
