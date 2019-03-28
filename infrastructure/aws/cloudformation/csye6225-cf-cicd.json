@@ -218,7 +218,8 @@
                             "Effect": "Allow",
                             "Action": [
                                 "lambda:CreateFunction",
-                                "lambda:UpdateFunctionConfiguration"
+                                "lambda:UpdateFunctionConfiguration",
+                                "lambda:UpdateFunctionCode"
                             ],
                             "Resource": "*"
                         }
