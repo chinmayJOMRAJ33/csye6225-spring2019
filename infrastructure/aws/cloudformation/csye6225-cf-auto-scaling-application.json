@@ -1,3 +1,94 @@
 {
-    
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Cloud Formation Template - CSYE6225 - Creating EC2 instance , Security Groups and Ingress Rules",
+    "Parameters": {
+        "EC2Name": {
+            "Type": "String"
+        },
+        "SubnetId1": {
+            "Type": "String"
+        },
+        "SubnetId2": {
+            "Type": "String"
+        },
+        "SubnetId3": {
+            "Type": "String"
+        },
+        "VpcId": {
+            "Type": "String"
+        },
+        "AMI": {
+            "Type": "String"
+        },
+        "S3Bucket": {
+            "Default": "",
+            "Type": "String"
+        },
+        "S3CodeBucket": {
+            "Default": "",
+            "Type": "String"
+        },
+        "RoleArn": {
+            "Default": "",
+            "Type": "String"
+        },
+        "keyName": {
+            "Default": "ctkey",
+            "Type": "String"
+        },
+        "SSLCertificate":{
+            "Default": "12345",
+            "Description": "Hosted Zone ID",
+            "Type": "String"
+           },
+        "DBName": {
+            "Default": "csye6225",
+            "Description": "This is my database name",
+            "Type": "String"
+        },
+        "DBUsername": {
+            "Default": "csye6225master",
+            "Description": "The database admin account username",
+            "Type": "String",
+            "AllowedPattern": "[a-zA-Z][a-zA-Z0-9]*"
+        },
+        "DBPassword": {
+            "Default": "csye6225password",
+            "Description": "The database admin account password",
+            "Type": "String",
+            "AllowedPattern": "[a-zA-Z0-9]*"
+        },
+        "TagKey": {
+            "Type": "String",
+            "Default": "csye6225-EC2-Key"
+        },
+        "TagValue": {
+            "Type": "String",
+            "Default": "csye6225-EC2"
+        },
+	"mySNSTopicName": {
+            "Default": "reset_password",
+            "Description": "SNS Topic name",
+            "Type": "String"
+        },
+        "Domain": {
+            "Default": "csye6225-spring2019-joshichai.me",
+            "Description": "from email id",
+            "Type": "String"
+        },
+        "IPtoBlock1": {
+            
+            "Description": "IPAddress to be blocked",
+            "Default" :  "192.0.2.44/32", 
+            "Type": "String"
+        },
+        
+        
+         "IPtoBlock2": {
+            
+            "Description": "IPAddress to be blocked",
+            "Default" :  "192.0.2.44/32",
+            "Type": "String"
+}
+    }
 }
