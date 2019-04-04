@@ -286,3 +286,99 @@ fileWriter.close();</stringProp>
         <BeanShellSampler guiclass="BeanShellSamplerGui" testclass="BeanShellSampler" testname="Save Note Details to a csv file" enabled="true">
           <stringProp name="BeanShellSampler.query">import java.io.FileWriter;
 import java.io.Writer;
+        //Default separator
+char SEPARATOR = &apos;,&apos;;
+
+//function write line in csv
+public void writeLine(FileWriter writer, String[] params, char separator)
+{
+   boolean firstParam = true;
+
+   StringBuilder stringBuilder = new StringBuilder();
+   String param = &quot;&quot;;
+   
+   for (int i = 0; i &lt; params.length; i++)
+   {
+      //get param
+      param = params[i];
+      log.info(param);
+       
+         //if the first param in the line, separator is not needed
+       if (!firstParam) 
+       {
+           stringBuilder.append(separator);
+       }
+
+         //Add param to line
+       stringBuilder.append(param);
+      
+       firstParam = false;
+   }
+
+   //prepare file to next line
+   stringBuilder.append(&quot;\n&quot;);
+
+   //add to file the line
+   log.info(stringBuilder.toString());
+   writer.append(stringBuilder.toString());
+
+}
+
+// Location of the .jmx file
+String projectHome = &quot;${__BeanShell(import org.apache.jmeter.services.FileServer; FileServer.getFileServer().getBaseDir();)}&quot;;
+
+//get path of csv file (creates new one if its not exists)
+String csvFile = projectHome + &quot;/user_note_data.csv&quot;;
+
+String[] params = {&quot;${email}&quot;, &quot;${pwd}&quot;, &quot;${noteId}&quot;};
+
+FileWriter fileWriter = new FileWriter(csvFile, true);
+writeLine(fileWriter, params, SEPARATOR);
+
+//proper close to file
+fileWriter.flush();
+fileWriter.close();</stringProp>
+          <stringProp name="BeanShellSampler.filename"></stringProp>
+          <stringProp name="BeanShellSampler.parameters"></stringProp>
+          <boolProp name="BeanShellSampler.resetInterpreter">false</boolProp>
+        </BeanShellSampler>
+        <hashTree/>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+
