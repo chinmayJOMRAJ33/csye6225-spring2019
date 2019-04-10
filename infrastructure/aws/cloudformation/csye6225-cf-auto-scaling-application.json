@@ -41,6 +41,12 @@
             "Description": "Hosted Zone ID",
             "Type": "String"
         },
+        "SSLCertificate2": {
+            "Default": "12345",
+            "Description": "Hosted Zone ID",
+            "Type": "String"
+        }
+        ,
         "DBName": {
             "Default": "csye6225",
             "Description": "This is my database name",
@@ -342,6 +348,29 @@
                 "IpAddressType": "ipv4"
             }
         },
+        "NoWAFLoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Name": "NoWAFLoadBalancer",
+                "Subnets": [
+                    {
+                        "Ref": "SubnetId2"
+                    },
+                    {
+                        "Ref": "SubnetId3"
+                    }
+                ],
+                "Scheme": "internet-facing",
+                "Type": "application",
+                "SecurityGroups": [
+                    {
+                        "Ref": "LoadBalancerSecurityGroup"
+                    }
+                ],
+                "IpAddressType": "ipv4"
+            }
+        }
+        ,
         "ALBTargetGroup": {
             "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
             "Properties": {
@@ -363,6 +392,28 @@
                 }
             }
         },
+        "ALBTargetGroup2": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "Name": "ALBTargetGroup2",
+                "Port": 8080,
+                "HealthCheckPort": 8080,
+                "Protocol": "HTTP",
+                "Matcher": {
+                    "HttpCode": "200,302"
+                },
+                "HealthCheckIntervalSeconds": 60,
+                "UnhealthyThresholdCount": 5,
+                "HealthyThresholdCount": 3,
+                "HealthCheckPath": "/assignment1-0.0.1-SNAPSHOT",
+                "HealthCheckTimeoutSeconds": 5,
+                "TargetType": "instance",
+                "VpcId": {
+                    "Ref": "VpcId"
+                }
+            }
+        }
+        ,
         "ALBListener": {
             "Type": "AWS::ElasticLoadBalancingV2::Listener",
             "Properties": {
@@ -388,6 +439,32 @@
                 ]
             }
         },
+        "ALBListener3": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "ALBTargetGroup2"
+                        }
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "NoWAFLoadBalancer"
+                },
+                "Port": 443,
+                "Protocol": "HTTPS",
+                "Certificates": [
+                    {
+                        "CertificateArn": {
+                            "Ref": "SSLCertificate2"
+                        }
+                    }
+                ]
+            }
+        }
+        ,
         "ALBListener2": {
             "Type": "AWS::ElasticLoadBalancingV2::Listener",
             "DependsOn": [
@@ -455,6 +532,51 @@
             },
             "DependsOn": "ApplicationLoadBalancer"
         },
+        "myDNSRecord2": {
+            "Type": "AWS::Route53::RecordSet",
+            "Properties": {
+                "AliasTarget": {
+                    "DNSName": {
+                        "Fn::GetAtt": [
+                            "NoWAFLoadBalancer",
+                            "DNSName"
+                        ]
+                    },
+                    "HostedZoneId": {
+                        "Fn::GetAtt": [
+                            "NoWAFLoadBalancer",
+                            "CanonicalHostedZoneID"
+                        ]
+                    }
+                },
+                "HostedZoneName": {
+                    "Fn::Join": [
+                        "",
+                        [ 
+                            {
+                                "Ref": "Domain"
+                            },
+                            "."
+                        ]
+                    ]
+                },
+                "Name": {
+                    "Fn::Join": [
+                        "",
+                        [ 
+                            "nowaf.",
+                            {
+                                "Ref": "Domain"
+                            },
+                            "."
+                        ]
+                    ]
+                },
+                "Type": "A"
+            },
+            "DependsOn": "NoWAFLoadBalancer"
+        }
+        ,
         "AutoScalingGroup": {
             "Type": "AWS::AutoScaling::AutoScalingGroup",
             "Properties": {
@@ -477,6 +599,9 @@
                 "TargetGroupARNs": [
                     {
                         "Ref": "ALBTargetGroup"
+                    },
+                    {
+                        "Ref": "ALBTargetGroup2"
                     }
                 ],
                 "Tags": [
@@ -494,7 +619,9 @@
             "DependsOn": [
                 "ALBListener",
                 "ALBListener2",
+                "ALBListener3",
                 "ALBTargetGroup",
+                "ALBTargetGroup2",
                 "MyLaunchConfig"
             ]
         },
@@ -660,6 +787,8 @@
                     }
                 ]
             }
+            
+            
         },
         "CodeDeployApplication": {
             "Type": "AWS::CodeDeploy::Application",
@@ -940,42 +1069,7 @@
         }
     },
     "Outputs": {
-        "EC2Instance": {
-            "Description": "The EC2 instance for the application",
-            "Value": {
-                "Ref": "MyLaunchConfig"
-            },
-            "Export": {
-                "Name": "MyLaunchConfig"
-            }
-        },
-        "RDSInstance": {
-            "Description": "The RDS instance for attachments",
-            "Value": {
-                "Ref": "MyRDSDB"
-            },
-            "Export": {
-                "Name": "MyRDSDB"
-            }
-        },
-        "S3Bucket": {
-            "Description": "The S3 bucket to store attachments",
-            "Value": {
-                "Ref": "S3Bucket"
-            },
-            "Export": {
-                "Name": "S3Bucket"
-            }
-        },
-        "MySNS": {
-            "Description": "The SNS Topic",
-            "Value": {
-                "Ref": "MySNS"
-            },
-            "Export": {
-                "Name": "MySNS"
-            }
-        },
+
         "ApplicationLoadBalancer": {
             "Description": "Get the load balancer arn",
             "Value": {
@@ -984,15 +1078,8 @@
             "Export": {
                 "Name": "ApplicationLoadBalancer"
             }
-        },
-        "AutoScalingGroup": {
-            "Description": "Get the load balancer arn",
-            "Value": {
-                "Ref": "AutoScalingGroup"
-            },
-            "Export": {
-                "Name": "AutoScalingGroup"
-            }
+        
         }
+
     }
 }
