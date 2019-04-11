@@ -1266,7 +1266,7 @@ public class MainController {
         }
         msg.append("You are not Authorized to use this note");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
-        logmsg("user is not authorized to perform this operation");
+        logmsg("user is not authorized to perform this operation of deletion");
         return n;
     }
 
@@ -1294,7 +1294,7 @@ public class MainController {
         User user1 = userRepository.findByEmail(user.getEmail());
         if (user1 == null) {
 
-            jEntity.setMsg("User account with email doesnt exist!");
+            jEntity.setMsg("User account with given email doesnt exist!");
 
             jEntity.setStatuscode(HttpStatus.BAD_REQUEST);
             jEntity.setCode(HttpStatus.BAD_REQUEST.value());
