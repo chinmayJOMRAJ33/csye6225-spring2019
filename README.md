@@ -1,15 +1,51 @@
-# csye6225-git-forking-workflow
+# CSYE 6225 - Spring 2019
 
-Team member information such as Name and Email address.
-The team consist of:
-Chaitanya Joshi (Scrum Master) email: joshi.chai@northeastern.edu NUID: 001860018
-Pooja Alone email: alone.p@husky.neu.edu NUID:00189564483
-Chinmay Jomraj email: jomraj.c@northeastern.edu NUID: 001822921
-Hetashavi Shah email: shah.heta@northeastern.edu github: hetashavi nuid : 001815783
-b.Prerequisites for building and deploying your application locally.
-You need to have:
-1.	Java 8 installed
-2.	MariaDB
-3.	An IDE like IntelliJ
-4.	Postman or RestClient for testing
-c.	Build and Deploy instructions for web application.
+## Team Information
+
+| Name | Email Address | NEU ID  |
+| --- | --- | --- |
+|Chaitanya Joshi| joshi.chai@northeastern.edu | 001860018 |
+|Pooja Alone| alone.p@husky.neu.edu | 001856483 |
+|Chinmay Jomraj| jomraj.c@northeastern.edu | 001822921 |
+|Hetashavi Shah| shah.heta@northeastern.edu | 001815783 |
+
+## Technology Stack
+### Operating System
+* Linux (Fedora)
+
+### Programming Language
+* Java
+
+### Relational Database
+* MariaDB
+
+### Backend Framework
+* Spring-Boot/Maven
+
+## Build Instructions
+### Prerequisites
+* Java (v8 or higher)
+* Maven CLI
+* MariaDB
+
+
+## Deploy Instructions
+* Add the domain name to the environment variable for deploying on circleci
+```
+    $ AWS_ACCESS_KEY_ID=Y<ACCESS KEY FROM AWS>
+    $ AWS_REGION=<us-east-1>
+    $ AWS_SECRET_ACCESS_KEY=<SECRET ACCESS KEY FROM AWS>
+    $ AWS_SUBNET_ID=<DEFAULT SUBNET ID>
+    $ applicationName=<name of application>
+    $ bucketName=<s3 bucket name>
+```
+
+
+## CI/CD
+
+It is implemented using circleci
+
+
+
+
+

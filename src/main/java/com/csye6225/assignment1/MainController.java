@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-//import at.favre.lib.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.*;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.web.multipart.MultipartFile;
@@ -263,7 +262,6 @@ public class MainController {
                 String[] values = credentials.split(":", 2);
                 String email = values[0];
                 String pwd = values[1];
-                // request.
                 User user1 = userRepository.findByEmail(email);
 
 
@@ -349,7 +347,6 @@ public class MainController {
             logmsg("The file size is larger than 100 mb");
             return a;
         }
-   // httpServletRequest.getServletContext()
 
 
         if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
@@ -435,25 +432,17 @@ public class MainController {
 
         String fileUrl = "";
         try {
-
-
-        //    File file = convertMultiPartFileToFile(multipartFile,req);
-          //  String fileName = multipartFile .getOriginalFilename();
             String fileName = aid + "_" + multipartFile .getOriginalFilename();
             String endpointUrl=env.getProperty("endpointUrl");
             String bucketName=env.getProperty("bucketName");
             fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
 
-
-            //  amazonClient.uploadFileTos3bucket(bucketName,fileName, file);
             try{
                 amazonClient.uploadFileTos3bucket(bucketName,fileName, multipartFile);}
             catch(Exception e){
                 return "NA";
             }
             fileUrl = endpointUrl + "/" + bucketName + "/" + fileName;
-
-            // file.delete();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -461,13 +450,7 @@ public class MainController {
     }
 
     public File convertMultiPartFileToFile(MultipartFile file,HttpServletRequest req) throws IOException {
-       // File convFile = new File(env.getProperty("uploadpath")+"/"+file.getOriginalFilename());
-
-       // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
-       // File convFile = new File("/home/chaitanyajoshi/test_folder/uploads"+"/"+file.getOriginalFilename());
-       //
-       // return convFile;
-
+       
         String fileName=file.getOriginalFilename();
         String uploadDir="/uploads/";
         String pathToUpload=req.getServletContext().getRealPath(uploadDir);
@@ -475,10 +458,6 @@ public class MainController {
             new File(pathToUpload).mkdir();
         }
         File convFile = new File(pathToUpload+file.getOriginalFilename());
-       // convFile.createNewFile();
-       // FileOutputStream fos = new FileOutputStream(convFile);
-       // fos.write(file.getBytes());
-       // fos.close();
         file.transferTo(convFile);
         return convFile;
     }
@@ -490,11 +469,8 @@ public class MainController {
     }
 
     public String uploadToFileSystem(MultipartFile file,String aid){
-        // System.out.println(profilename);
-
         Path path=null;
         try {
-            // Get the file and save it somewhere
             byte[] bytes = file.getBytes();
             String filestoreName=aid + '_' + file.getOriginalFilename();
             path = Paths.get(env.getProperty("uploadpath") + filestoreName);
@@ -528,7 +504,6 @@ public class MainController {
         String auth=httpServletRequest.getHeader("Authorization");
         StringBuffer msg=new StringBuffer();
         Note note = null;
-        //Set<Attachment> attachments = null;
         Attachment attachment = null;
         if (auth != null && !auth.isEmpty() && auth.toLowerCase().startsWith("basic")) {
             String base64Credentials = auth.substring("Basic".length()).trim();
@@ -602,28 +577,16 @@ public class MainController {
                                 else{
                                     if (profileName.equalsIgnoreCase(name)) {
                                         String bucketName = env.getProperty("bucketname");
-
-//                                        String bucketName = env.getProperty("bucketname");
-//                                        String fileName = attachment.getUrl();
-//                                        amazonClient.deleteFileFromS3Bucket(bucketName,fileName);
-//                                        attachmentRepository.delete(attachment);
-
-
-
                                         String fileName = attachment.getUrl();
                                         String aid=attachment.getId();
                                         String id=getIdentifier(aid);
-                                        // amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
                                         String fo = fileName.substring(fileName.lastIndexOf("/") + 1);
                                         System.out.println(fo);
                                         amazonClient.deleteFileFromS3Bucket(bucketName, fo);
                                         logmsg("Deleting attachment with id "+idAttachments);
                                         attachmentRepository.delete(attachment);
-                                        //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
-                                        //  msg.append("Deleted Successfully from local file system");
                                         setResponse(HttpStatus.NO_CONTENT, response, msg);
 
-                                        //uploadToAWS(file,id);
                                         return null;
 
 
@@ -658,7 +621,6 @@ public class MainController {
 
 
         }
-        // j.setMsg("User is not logged in!");
         msg.append("You are not Authorized to use this note");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
         logmsg("You are not Authorized to use this note");
@@ -667,11 +629,10 @@ public class MainController {
 
 
     public String uploadToFileSystem(MultipartFile file){
-        // System.out.println(profilename);
-
+        
         Path path=null;
         try {
-            // Get the file and save it somewhere
+           
             byte[] bytes = file.getBytes();
             path = Paths.get(env.getProperty("uploadpath") + file.getOriginalFilename());
             Files.write(path, bytes);
@@ -694,7 +655,7 @@ public class MainController {
 
 
     public Attachment editFile(MultipartFile file,String noteId,String attachmentId,HttpServletRequest httpServletRequest, HttpServletResponse response){
-//        String profileName="default";
+
         statsDClient.incrementCounter("endpoint.note.attachment.api.put");
         logmsg("edit operation for attachment initiated");
         String auth = httpServletRequest.getHeader("Authorization");
@@ -729,7 +690,6 @@ public class MainController {
                 String[] values = credentials.split(":", 2);
                 String email = values[0];
                 String pwd = values[1];
-                // request.
                 User user = userRepository.findByEmail(email);
 
                 if (user == null) {
@@ -762,7 +722,6 @@ public class MainController {
                             Attachment a2 = attachmentRepository.findById(attachmentId);
 
                                if (!(a2.getNote().getId() == note.getId()) || !(note.getUser().getId() == user.getId())){
-                         //   !(attachmentRepository.findById(idAttachments).getNote() == note)|| !(note.getUser().getId() == user1.getId())
                                 msg.append("This attachment is not entitled to the given note");
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
                                    logmsg("The attachment "+attachmentId+" is not entitled for the given note");
@@ -776,12 +735,9 @@ public class MainController {
                                    String fileName = a2.getUrl();
                                    String aid=a2.getId();
                                    String id=getIdentifier(aid);
-                                  // amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
                                    String fo = fileName.substring(fileName.lastIndexOf("/") + 1);
                                    System.out.println(fo);
                                    amazonClient.deleteFileFromS3Bucket(bucketName, fo);
-                                 //  s3client.deleteObject(new DeleteObjectRequest(bucket, fileName));
-                                 //  msg.append("Deleted Successfully from local file system");
                                    setResponse(HttpStatus.NO_CONTENT, response, msg);
                                    try {
                                        String url = uploadToAWS(file, id, httpServletRequest);
@@ -812,12 +768,6 @@ public class MainController {
 
 
                             }
-//                            else if (!((attachmentRepository.findById(attachmentId).getNote() == note))) {
-//                                msg.append("This attachment is not entitled to the given note");
-//                                setResponse(HttpStatus.UNAUTHORIZED, response, msg);
-//                                return attachmentRepository.findById(attachmentId);
-//
-//                            }
                             else if (!(a1.getNote().getId() == note.getId())||!(note.getUser().getId() == user.getId())){
                                 msg.append("This attachment is not entitled to the given note");
                                 setResponse(HttpStatus.UNAUTHORIZED, response, msg);
@@ -830,26 +780,18 @@ public class MainController {
 
 
                             else {
-                                //attachmentRepository.delete(a1);
                                 File destFile = new File(a1.getUrl());
                                 if(destFile.exists()){
                                     destFile.delete();
                                 }
 
                                 String aid=a1.getId();
-                                //System.out.println(aid);
                                 String id=getIdentifier(attachmentId);
                                 String url=uploadToFileSystem(file,id);
-                               // System.out.println(url);
                                 attachmentRepository.findById(attachmentId).setUrl(url);
-                               // System.out.println(a1.getUrl());
-                               // System.out.println(a1);
                                 attachmentRepository.save(a1);
-                              //  setResponse(resp);
                                 setResponse(HttpStatus.NO_CONTENT, response, msg);
                                 logmsg("The attachment is edited successfully");
-                                // a = createAttachment(file, note);
-                                //   attachmentRepository.save(a1);
                                 return null;
                             }
                         }
@@ -887,7 +829,6 @@ public class MainController {
                 String[] values = credentials.split(":", 2);
                 String email = values[0];
                 String pwd = values[1];
-                // request.
                 User u = userRepository.findByEmail(email);
 
 
@@ -947,9 +888,6 @@ public class MainController {
     public Note createNote(User u,Note note){
         Note n=new Note();
         Instant ins=Instant.now();
-
-
-      //  n.setId(UUID.randomUUID().toString());
         n.setCreated_on(ins.toString());
         n.setUpdated_on(ins.toString());
         n.setTitle(note.getTitle());
@@ -989,7 +927,6 @@ public class MainController {
                 String[] values = credentials.split(":", 2);
                 String email = values[0];
                 String pwd = values[1];
-                // request.
                 User u = userRepository.findByEmail(email);
 
 
@@ -1063,7 +1000,6 @@ public class MainController {
                 String[] values = credentials.split(":", 2);
                 String email = values[0];
                 String pwd = values[1];
-                // request.
                 User u = userRepository.findByEmail(email);
 
 
@@ -1096,7 +1032,6 @@ public class MainController {
                         logmsg("notes could not be found for this user "+u.getEmail());
                         return null;
                     }
-//
 
                     setResponse(HttpStatus.OK,response);
                     logmsg("fetched all notes successfully for "+u.getEmail());
@@ -1123,7 +1058,6 @@ public class MainController {
 
     @PutMapping (path="/note/{id}")
     public @ResponseBody Object upateNote(@RequestBody Note note, @PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
-        //JEntity j = new JEntity();
         statsDClient.incrementCounter("endpoint.note.id.api.put");
         logmsg("Note editing initiated");
         String auth=httpServletRequest.getHeader("Authorization");
@@ -1184,12 +1118,7 @@ public class MainController {
                                 logmsg("Note must have a title and content");
                                 return null;
                             }
-
-//                        Note n = new Note();
                             Instant ins = Instant.now();
-//                        n.setId(UUID.randomUUID().toString());
-//
-//                        n.setCreated_on(ins.toString());
                             n1.setUpdated_on(ins.toString());
                             n1.setTitle(note.getTitle());
                             n1.setContent(note.getContent());
@@ -1221,7 +1150,6 @@ public class MainController {
 
 
         }
-        // j.setMsg("User is not logged in!");
         msg.append("You are not Authorized to use this note");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
         return n;
@@ -1231,7 +1159,6 @@ public class MainController {
 
     @DeleteMapping  (path="/note/{id}")
     public @ResponseBody Object deleteNote(@PathVariable("id") String id,HttpServletRequest httpServletRequest,HttpServletResponse response){
-        //JEntity j = new JEntity();
         statsDClient.incrementCounter("endpoint.note.id.api.delete");
         logmsg("Note deletion initiated");
         String auth=httpServletRequest.getHeader("Authorization");
@@ -1300,7 +1227,6 @@ public class MainController {
                                 String fileName = a.getUrl();
                                 String aid=a.getId();
                                 String id1=getIdentifier(aid);
-                                // amazonClient.deleteFileFromS3Bucket(bucketName, fileName);
                                 String fo = fileName.substring(fileName.lastIndexOf("/") + 1);
                                 System.out.println(fo);
                                 amazonClient.deleteFileFromS3Bucket(bucketName, fo);
@@ -1338,10 +1264,9 @@ public class MainController {
 
 
         }
-        // j.setMsg("User is not logged in!");
         msg.append("You are not Authorized to use this note");
         setResponse(HttpStatus.UNAUTHORIZED,response,msg);
-        logmsg("user is not authorized to perform this operation");
+        logmsg("user is not authorized to perform this operation of deletion");
         return n;
     }
 
@@ -1369,7 +1294,7 @@ public class MainController {
         User user1 = userRepository.findByEmail(user.getEmail());
         if (user1 == null) {
 
-            jEntity.setMsg("User account with email doesnt exist!");
+            jEntity.setMsg("User account with given email doesnt exist!");
 
             jEntity.setStatuscode(HttpStatus.BAD_REQUEST);
             jEntity.setCode(HttpStatus.BAD_REQUEST.value());
@@ -1388,7 +1313,7 @@ public class MainController {
 
             ListTopicsResult topicsResult = snsClient.listTopics();
             List<Topic> topicList = topicsResult.getTopics();
-            Topic reset = null;//= topicList.get(topicList.indexOf("reset"));
+            Topic reset = null;
             for(Topic topic: topicList) {
                 if (topic.getTopicArn().contains(snsName))
                     reset = topic;
@@ -1396,7 +1321,6 @@ public class MainController {
             if(reset != null) {
                 PublishRequest publishRequest = new PublishRequest(reset.getTopicArn(), msg);
                 PublishResult publishResult = snsClient.publish(publishRequest);
-//print MessageId of message published to SNS topic
                 System.out.println("MessageId - " + publishResult.getMessageId());
             }
             else{
